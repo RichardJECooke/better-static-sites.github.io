@@ -39,12 +39,29 @@ const docsCollection = await getCollection('docs');
     <link rel="shortcut icon" href={`/favicon.ico`}>
     <link rel="alternate" type="text/plain" title="LLM Index" href="/llms.txt" />
     {mdUrl && <link rel="alternate" type="text/markdown" title="Page Markdown Source" href={mdUrl} />}
+  <style is:inline>
+    html { background: #ffffff; color: #18181b; }
+    html.dark { background: #080808; color: #e8e8e8; }
+    body { background: #ffffff; min-height: 100vh; }
+    html.dark body { background: #080808; }
+    #main-header { background: #f5f3ff; position: sticky; top: 0; z-index: 50; }
+    html.dark #main-header { background: #0f0f0f; }
+    .doc-layout { display: flex; flex: 1; max-width: 1400px; margin: 0 auto; width: 100%; padding: 0 1rem; gap: 1.25rem; align-items: flex-start; }
+    .doc-sidebar { width: 15rem; flex-shrink: 0; }
+    .doc-main { flex: 1; min-width: 0; padding: 2rem 0; }
+    .doc-toc { display: none; width: 11rem; flex-shrink: 0; }
+    @media (min-width: 1280px) { .doc-toc { display: block; } }
+    @media (max-width: 768px) { .doc-sidebar { display: none; } }
+  </style>
   <script is:inline>
     (function() {
       var t = localStorage.getItem('theme');
       var dark = t === 'dark' || ((!t || t === 'system') && window.matchMedia('(prefers-color-scheme: dark)').matches);
       if (dark) document.documentElement.classList.add('dark');
     })();
+  </script>
+  <script type="speculationrules" is:inline>
+    {"prerender":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}
   </script>
   </head>
   <body class="page-wrapper">
@@ -140,6 +157,15 @@ const docsCollection = await getCollection('docs');
     </footer>
 
     <script>
+      const sidebar = document.querySelector<HTMLElement>('.doc-sidebar');
+      if (sidebar) {
+        const saved = sessionStorage.getItem('sidebarScrollPos');
+        if (saved !== null) sidebar.scrollTop = parseInt(saved, 10);
+        window.addEventListener('beforeunload', () => {
+          sessionStorage.setItem('sidebarScrollPos', sidebar.scrollTop.toString());
+        });
+      }
+
       document.querySelectorAll<HTMLButtonElement>('.copy-md-btn').forEach(btn => {
         const originalHTML = btn.innerHTML;
         btn.addEventListener('click', async () => {
