@@ -39,6 +39,13 @@ const docsCollection = await getCollection('docs');
     <link rel="shortcut icon" href={`/favicon.ico`}>
     <link rel="alternate" type="text/plain" title="LLM Index" href="/llms.txt" />
     {mdUrl && <link rel="alternate" type="text/markdown" title="Page Markdown Source" href={mdUrl} />}
+  <script is:inline>
+    (function() {
+      var t = localStorage.getItem('theme');
+      var dark = t === 'dark' || ((!t || t === 'system') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      if (dark) document.documentElement.classList.add('dark');
+    })();
+  </script>
   </head>
   <body class="page-wrapper">
     <div class="sr-only">
