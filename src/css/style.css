@@ -16,6 +16,7 @@
 @source "../../node_modules/astro-better-tabs/Tabs.astro";
 @source "../../node_modules/astro-better-tabs/TabItem.astro";
 @source "../../node_modules/astro-better-cards/Card.astro";
+@source "../../node_modules/astro-better-cards/ChildCards.astro";
 @source "../../node_modules/astro-toc-smol/src/index.js";
 @source "../../node_modules/astro-toc-smol/src/InlineTOC.astro";
 
@@ -620,16 +621,25 @@ pre[class*="language-"], code[class*="language-"] {
 }
 
 /* tabs theme override -- use site CSS vars */
-.tabs-group,
-.dark .tabs-group {
+.tabs-group {
   --tabs-bg:           var(--bg-alt);
+  --tabs-border:       #ddd6fe;
   --tabs-panel-bg:     var(--bg);
   --tabs-active-bg:    var(--bg);
   --tabs-active-color: var(--accent);
 }
-/* use slightly more visible borders than --border (which is #1c0e00 in dark) */
-.tabs-group             { --tabs-border: #ddd6fe; --tabs-panel-border: #ddd6fe; }
-.dark .tabs-group       { --tabs-border: #2a1400; --tabs-panel-border: #2a1400; }
+/* html.dark matches the component's own html.dark .tabs-group specificity so our values win */
+html.dark .tabs-group {
+  --tabs-bg:           var(--bg-alt);
+  --tabs-border:       #2a1400;
+  --tabs-panel-bg:     var(--bg);
+  --tabs-active-bg:    var(--bg);
+  --tabs-active-color: var(--accent);
+}
+/* tab-bar bg is hardcoded in the component and bypasses the CSS variable — override directly */
+html.dark .tab-bar {
+  background-color: var(--bg-alt);
+}
 
 /* steps theme override -- purple light, orange dark */
 .steps-container {
