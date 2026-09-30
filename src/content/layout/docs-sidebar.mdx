@@ -2,7 +2,7 @@
 title: Navigation Sidebar
 description: Auto-building docs sidebar from a content collection, with tree expansion and active-page tracking.
 order: 1
-version: "0.2.0"
+version: "1.0.0"
 badges: ["component"]
 ---
 
@@ -11,7 +11,7 @@ import { Steps } from 'astro-better-steps';
 import PkgMeta from 'src/components/PkgMeta.astro';
 
 Builds a sidebar navigation tree from an Astro content collection. Handles nested directories,
-folder expansion, active-page highlighting, overview pages, and `order` / `hidden` frontmatter fields.
+folder expansion, active-page highlighting, overview pages, and `order` / `hidden` frontmatter fields. Requires Tailwind CSS.
 
 <PkgMeta pkg="astro-better-docs-sidebar" />
 
@@ -20,10 +20,20 @@ folder expansion, active-page highlighting, overview pages, and `order` / `hidde
 ```shell-session
 npm install astro-better-docs-sidebar
 ```
+## Folder behavior modes
+
+`folderBehavior` controls what happens when a folder has an `index.md(x)` file:
+
+- `page` (default): the folder node links to the index page directly
+- `unclickable`: the folder node is a label with no link; only children are clickable
+- `overview`: an "Overview" link is auto-generated as the first child
+
+### Style the sidebar container
+
+The sidebar requires Tailwind for its internal `<style>` block.
+Wrap it in an `<aside>` with the `aside` class, or let it render inline.
 
 ## Setup
-
-<Steps>
 
 ### Define your content collection
 
@@ -65,13 +75,6 @@ const docsCollection = await getCollection('docs');
 />
 ```
 
-### Style the sidebar container
-
-The sidebar requires Tailwind for its internal `<style>` block.
-Wrap it in an `<aside>` with the `aside` class, or let it render inline.
-
-</Steps>
-
 ## Props
 
 | Prop | Type | Default | Description |
@@ -92,16 +95,3 @@ Wrap it in an `<aside>` with the `aside` class, or let it render inline.
 | `route` | `boolean` | Set to `false` on a folder's `index.mdx` to prevent the sidebar from linking to it |
 | `sidebar.label` | `string` | Override the sidebar label (without changing the page title) |
 | `sidebar.folderBehavior` | `string` | Override folder behavior for this specific folder |
-
-## Folder behavior modes
-
-`folderBehavior` controls what happens when a folder has an `index.md(x)` file:
-
-- `page` (default): the folder node links to the index page directly
-- `unclickable`: the folder node is a label with no link; only children are clickable
-- `overview`: an "Overview" link is auto-generated as the first child
-
-<Admonition type="tip" title="Requires Tailwind">
-  The sidebar uses Tailwind `@apply` in its `&lt;style&gt;` block, so Tailwind must be installed
-  in the consuming project. All classes use the `.dark` variant for dark mode.
-</Admonition>
