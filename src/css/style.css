@@ -487,10 +487,11 @@ aside.aside { background: transparent; border-color: transparent; }
 
 footer.site-footer {
   border-top: 1px solid var(--border);
-  padding: 1.5rem;
-  text-align: center;
-  font-size: 0.8125rem;
+  padding: 0.5rem;
+  text-align: right;
+  font-size: 0.714rem;
   color: var(--text-muted);
+  display: none;
 }
 footer.site-footer a { color: var(--hero); }
 
