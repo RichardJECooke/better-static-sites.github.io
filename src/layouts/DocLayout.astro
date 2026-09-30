@@ -51,7 +51,12 @@ const docsCollection = await getCollection('docs');
     .doc-main { flex: 1; min-width: 0; padding: 2rem 0; }
     .doc-toc { display: none; width: 11rem; flex-shrink: 0; }
     @media (min-width: 1280px) { .doc-toc { display: block; } }
-    @media (max-width: 768px) { .doc-sidebar { display: none; } }
+    /* mirrors style.css off-canvas; display:none here would kill the checkbox toggle */
+    @media (max-width: 768px) {
+      .doc-sidebar { position: fixed; top: 3.75rem; left: 0; bottom: 0; z-index: 40; width: 16rem; background: #ffffff; transform: translateX(-100%); }
+      html.dark .doc-sidebar { background: #080808; }
+      body:has(.nav-sidebar-checkbox:checked) .doc-sidebar { transform: translateX(0); }
+    }
   </style>
   <script is:inline>
     (function() {

@@ -8,9 +8,7 @@ badges: ["integration", "component"]
 
 import PkgMeta from 'src/components/PkgMeta.astro';
 
-An Astro integration that generates `.md` companion files and an `llms.txt` index
-from your built HTML pages. The `.md` files are clean Markdown versions of your HTML
-content, suitable for consumption by LLMs or static site search tools.
+An Astro integration that generates `.md` companion files and an `llms.txt` index from your built HTML pages. The `.md` files are Markdown versions of your HTML content, suitable for consumption by LLMs or static site search tools. Instead of using the raw source Markdown, this integration reverse engineers Markdown based on the generated HTML pages to avoid losing content declared in components and included files.
 
 <PkgMeta pkg="astro-gen-markdown-pages" />
 

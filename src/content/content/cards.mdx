@@ -14,10 +14,12 @@ import ChildCards from 'astro-better-cards/ChildCards.astro';
 import PageNav from 'astro-better-cards/PageNav.astro';
 import PkgMeta from 'src/components/PkgMeta.astro';
 
-Four components for navigational content: `Card` (a standalone link card),
-`CardGrid` (a responsive grid wrapper for arbitrary `Card` children),
-`ChildCards` (a grid of cards auto-generated from child pages), and `PageNav`
-(previous/next page navigation for sequential docs).
+Components for navigational content:
+
+* `Card`: a standalone link card
+* `CardGrid`: a responsive grid wrapper for arbitrary `Card` children
+* `ChildCards`: a grid of cards auto-generated from child pages
+* `PageNav`: previous/next page navigation for sequential docs
 
 <PkgMeta pkg="astro-better-cards" />
 
@@ -69,8 +71,8 @@ import Card from 'astro-better-cards/Card.astro';
 ## CardGrid
 
 A responsive grid wrapper for manually-specified `Card` children. Use this when
-your cards have arbitrary hrefs not tied to the content collection. A curated
-list of links on a landing page is the typical use case.
+your cards have arbitrary hrefs not tied to the content collection (e.g a curated
+list of links on a landing page).
 
 ```mdx escape
 import Card from 'astro-better-cards/Card.astro';
@@ -126,8 +128,7 @@ import ChildCards from 'astro-better-cards/ChildCards.astro';
 <ChildCards collection="articles" />
 ```
 
-Pages with `excludeFromNav: true` or `route: false` in their frontmatter are excluded.
-You must add `excludeFromNav` to your content schema for it to take effect.
+Pages with `excludeFromNav: true` or `route: false` in their frontmatter do not appear in the grid (if you add `excludeFromNav` to your content schema).
 
 ### Live example
 
@@ -147,8 +148,13 @@ You must add `excludeFromNav` to your content schema for it to take effect.
 
 Previous/next navigation rendered at the bottom of a page.
 
-The resolution order is: prop value, then frontmatter `prev`/`next`, then automatic detection
-by sibling `order`. On most pages you can drop `<PageNav />` with no configuration and it
+Precedence:
+
+1. prop value
+1. frontmatter `prev`/`next`
+1. automatic detection by sibling `order`
+
+On most pages you can drop `<PageNav />` with no configuration and it
 will figure out the neighbors on its own.
 
 To force a specific order or override auto-detection, add `prev` and `next` to frontmatter:

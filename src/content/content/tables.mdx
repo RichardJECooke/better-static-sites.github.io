@@ -11,8 +11,9 @@ import Row from 'astro-better-tables/Row.astro';
 import Cell from 'astro-better-tables/Cell.astro';
 import PkgMeta from 'src/components/PkgMeta.astro';
 
-Table components for Astro MDX. `TableGrid` uses `Row` and `Cell` child components.
+Table components for Astro MDX that aren't as frustrating as Markdown or HTML tables.
 `Table` uses RST-style nested markdown lists.
+`TableGrid` uses `Row` and `Cell` child components.
 
 <PkgMeta pkg="astro-better-tables" />
 
@@ -22,9 +23,46 @@ Table components for Astro MDX. `TableGrid` uses `Row` and `Cell` child componen
 npm install astro-better-tables
 ```
 
+## Table
+
+`Table` uses RST-style nested markdown lists. Each outer list item is a row;
+each inner list item is a cell. Use `headerRows` to specify how many leading
+rows become `<thead>` rows.
+
+````mdx escape
+import Table from 'astro-better-tables/Table.astro';
+
+<Table headerRows={1}>
+- - Package
+  - Type
+  - Version
+- - astro-better-nav-bar
+  - component
+  - 0.1.1
+- - astro-better-steps
+  - component
+  - 0.1.0
+</Table>
+````
+
+### Table props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `headerRows` | `number` | `0` | Number of leading rows to render as `<thead>` |
+| `stubCols` | `number` | `0` | Number of leading columns rendered as `<th scope="row">` |
+| `widths` | `string` | -- | Space-separated column width ratios |
+| `colAlign` | `string` | -- | Space-separated `text-align` values per column |
+| `caption` | `string` | -- | Table caption |
+| `align` | `'left' \| 'center' \| 'right'` | -- | Horizontal alignment of the table |
+| `width` | `string` | -- | CSS width of the table |
+| `scroll` | `boolean` | `true` | Wrap in a horizontally-scrollable container |
+| `class` | `string` | -- | Additional CSS classes |
+
+
 ## TableGrid
 
-Use `TableGrid` with `Row` and `Cell` child components. Header rows go in a `Row` with `slot="head"`.
+Use `TableGrid` with `Row` and `Cell` child components. For headers, declare a `Row` with `slot="head"`.
 
 ````mdx escape
 import TableGrid from 'astro-better-tables/TableGrid.astro';
@@ -259,40 +297,4 @@ any data where rows naturally cluster into named groups.
 | `rowspan` | `number` | -- | Row span |
 | `align` | `string` | -- | `text-align` value |
 | `valign` | `string` | -- | `vertical-align` value |
-| `class` | `string` | -- | Additional CSS classes |
-
-## Table
-
-`Table` uses RST-style nested markdown lists. Each outer list item is a row;
-each inner list item is a cell. Use `headerRows` to specify how many leading
-rows become `<thead>` rows.
-
-````mdx escape
-import Table from 'astro-better-tables/Table.astro';
-
-<Table headerRows={1}>
-- - Package
-  - Type
-  - Version
-- - astro-better-nav-bar
-  - component
-  - 0.1.1
-- - astro-better-steps
-  - component
-  - 0.1.0
-</Table>
-````
-
-### Table props
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `headerRows` | `number` | `0` | Number of leading rows to render as `<thead>` |
-| `stubCols` | `number` | `0` | Number of leading columns rendered as `<th scope="row">` |
-| `widths` | `string` | -- | Space-separated column width ratios |
-| `colAlign` | `string` | -- | Space-separated `text-align` values per column |
-| `caption` | `string` | -- | Table caption |
-| `align` | `'left' \| 'center' \| 'right'` | -- | Horizontal alignment of the table |
-| `width` | `string` | -- | CSS width of the table |
-| `scroll` | `boolean` | `true` | Wrap in a horizontally-scrollable container |
 | `class` | `string` | -- | Additional CSS classes |

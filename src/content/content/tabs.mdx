@@ -10,8 +10,7 @@ import Tabs from 'astro-better-tabs/Tabs.astro';
 import TabItem from 'astro-better-tabs/TabItem.astro';
 import PkgMeta from 'src/components/PkgMeta.astro';
 
-Tabbed content panels for MDX pages. No client-side JavaScript: the DOM is
-reorganized at build/server time and panel switching uses CSS `:has()`.
+Tabbed content panels for MDX pages. No client-side JavaScript: reorganizes the DOM at build time for label styling, panel switching uses CSS `:has()`.
 
 <PkgMeta pkg="astro-better-tabs" />
 
@@ -106,7 +105,7 @@ Panel visibility is handled by pre-generated CSS `:has()` rules (supports up to 
 
 ## Styling
 
-The component requires Tailwind CSS in the consuming project. Import the stylesheet
+This component requires Tailwind CSS in the consuming project. Import the stylesheet
 and tell Tailwind to scan the component files:
 
 ```css

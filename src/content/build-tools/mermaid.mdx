@@ -9,7 +9,8 @@ badges: ["integration"]
 import PkgMeta from 'src/components/PkgMeta.astro';
 
 An Astro integration that pre-renders Mermaid diagrams to inline SVG at build time.
-No client-side JavaScript is shipped -- diagrams are static SVG in the output HTML.
+No client-side JavaScript, because diagrams are static SVG in the output HTML.
+No heavyweight browser CLI required, either, because this uses `svgdom` (just a few MBs, a couple of orders of magnitude lighter than Playwright) to render SVGs.
 
 <PkgMeta pkg="astro-mermaid-renderer-cli-smol" />
 

@@ -9,8 +9,8 @@ badges: ["component"]
 import Details from 'astro-better-details/Details.astro';
 import PkgMeta from 'src/components/PkgMeta.astro';
 
-Expandable disclosure panels built on the native `<details>`/`<summary>` HTML elements.
-No JavaScript required. Includes an animated chevron and CSS custom property theming.
+Expandable disclosure panels built on the native `<details>`/`<summary>` HTML elements with no JavaScript.
+Includes an animated chevron and CSS custom property theming.
 
 <PkgMeta pkg="astro-better-details" />
 
@@ -32,7 +32,7 @@ import Details from 'astro-better-details/Details.astro';
 </Details>
 ````
 
-Use the `title` slot when the header needs inline markup -- code, links, or other components:
+Use the `title` slot when the header needs inline markup, like links, or monospace, italicized, or bold text:
 
 ````mdx escape
 <Details>
@@ -71,7 +71,7 @@ Use the `title` slot when the header needs inline markup -- code, links, or othe
 
 | Slot | Description |
 |------|-------------|
-| `title` | Header content with inline markup -- code, links, components; takes precedence over the `title` prop |
+| `title` | Header content with basic inline markup, takes precedence over the `title` prop |
 | (default) | Body content revealed when expanded |
 
 ## Theming

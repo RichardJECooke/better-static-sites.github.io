@@ -136,8 +136,8 @@ and injects the same TOC HTML into every `[data-server-toc]` element on the page
 means both the sidebar `<TOC>` and the inline `<InlineTOC>` receive identical content
 from a single pass.
 
-The scroll spy in `<TOC>` is scoped to `#toc-container` so it only highlights items in
-the sidebar and does not interfere with the inline accordion.
+The scroll spy in `<TOC>` is scoped to `#toc-container`, so it only highlights items in
+the sidebar. It never interacts with the inline accordion.
 
 <Admonition type="tip" title="Empty pages">
   If a page has no headings, any `[data-toc-inline]` elements are set to `hidden` in the

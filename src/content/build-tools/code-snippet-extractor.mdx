@@ -16,12 +16,6 @@ and plain source file inclusion.
 
 <PkgMeta pkg="astro-better-code-snippet-extractor" />
 
-<Admonition type="caution" title="Node 22.6+ compatibility">
-  Version `0.2.1` fixes a crash on Node 22.6+ where `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`
-  was thrown when Bluehawk loaded `.d.ts` files from `node_modules`. The fix strips
-  type-stripping flags from `NODE_OPTIONS` before spawning the Bluehawk subprocess.
-</Admonition>
-
 ## Installation
 
 ```shell-session
