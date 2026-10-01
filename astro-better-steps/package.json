@@ -2,6 +2,22 @@
   "name": "astro-better-steps",
   "version": "0.1.1",
   "description": "Numbered step-by-step component for Astro",
+  "keywords": [
+    "astro",
+    "steps",
+    "numbered",
+    "tutorial"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/better-static-sites/better-static-sites.github.io.git",
+    "directory": "astro-better-steps"
+  },
+  "homepage": "https://better-static-sites.github.io",
+  "bugs": {
+    "url": "https://github.com/better-static-sites/better-static-sites.github.io/issues"
+  },
   "type": "module",
   "exports": {
     ".": "./index.js",
@@ -12,7 +28,5 @@
     "*.js",
     "*.astro",
     "*.css"
-  ],
-  "keywords": ["astro", "steps", "numbered", "tutorial"],
-  "license": "MIT"
+  ]
 }

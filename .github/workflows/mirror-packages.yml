@@ -1,0 +1,43 @@
+# Mirrors each changed astro-better-* directory to its standalone repo, on merge
+# to main. Targets come from each directory's repositoryUrl.txt.
+#
+# All logic lives in scripts/mirror-packages.mjs so it can be run locally:
+#
+#   node scripts/mirror-packages.mjs --dry-run --all
+#   MIRROR_REPO_TOKEN=... node scripts/mirror-packages.mjs --only astro-better-refs
+#   MIRROR_REPO_TOKEN=... node scripts/mirror-packages.mjs --all
+#
+# Secret required: MIRROR_REPO_TOKEN (contents:write on the target repos).
+
+name: Mirror packages to standalone repos
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'astro-better-*/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mirror:
+    name: Mirror changed packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 2 # the script diffs against the previous commit
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      # A manual run mirrors everything; a merge mirrors only what it changed.
+      - run: |
+          node scripts/mirror-packages.mjs \
+            ${{ github.event_name == 'workflow_dispatch' && '--all' || '--base HEAD~1' }}
+        env:
+          MIRROR_REPO_TOKEN: ${{ secrets.MIRROR_REPO_TOKEN }}

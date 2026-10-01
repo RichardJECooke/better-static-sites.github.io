@@ -1,0 +1,38 @@
+{
+  "name": "astro-mermaid-renderer-cli-smol",
+  "version": "0.1.2",
+  "description": "Deprecated: renamed to astro-better-mermaid",
+  "keywords": [
+    "deprecated",
+    "renamed",
+    "astro-better-mermaid"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/better-static-sites/better-static-sites.github.io.git",
+    "directory": "rename-aliases/astro-mermaid-renderer-cli-smol"
+  },
+  "homepage": "https://www.npmjs.com/package/astro-better-mermaid",
+  "bugs": {
+    "url": "https://github.com/better-static-sites/better-static-sites.github.io/issues"
+  },
+  "type": "module",
+  "exports": {
+    ".": "./index.mjs",
+    "./styles.css": "./styles.css"
+  },
+  "files": [
+    "index.mjs",
+    "*.astro",
+    "*.css",
+    "bin/"
+  ],
+  "dependencies": {
+    "astro-better-mermaid": "^0.1.1"
+  },
+  "peerDependencies": {
+    "astro": ">=4.0.0",
+    "mermaid": ">=10.0.0"
+  }
+}

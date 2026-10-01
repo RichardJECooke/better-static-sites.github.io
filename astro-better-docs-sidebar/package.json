@@ -1,17 +1,34 @@
 {
   "name": "astro-better-docs-sidebar",
   "version": "1.0.0",
+  "keywords": [
+    "astro",
+    "sidebar",
+    "docs",
+    "navigation"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/better-static-sites/better-static-sites.github.io.git",
+    "directory": "astro-better-docs-sidebar"
+  },
+  "homepage": "https://better-static-sites.github.io",
+  "bugs": {
+    "url": "https://github.com/better-static-sites/better-static-sites.github.io/issues"
+  },
   "type": "module",
   "exports": {
     "./Sidebar.astro": "./Sidebar.astro",
     "./SidebarItem.astro": "./SidebarItem.astro"
   },
-  "peerDependencies": {
-    "astro": ">=4.0.0"
-  },
+  "files": [
+    "*.astro"
+  ],
   "dependencies": {
     "marked": "^17.0.0"
   },
-  "keywords": ["astro", "sidebar", "docs", "navigation"],
-  "license": "MIT"
+  "peerDependencies": {
+    "astro": ">=4.0.0"
+  }
 }

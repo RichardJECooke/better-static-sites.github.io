@@ -1,0 +1,1 @@
+github.com/nathan-contino/astro-better-declarative-screenshots.git

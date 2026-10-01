@@ -1,14 +1,14 @@
 import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 import mdx from '@astrojs/mdx';
-import tocSmol from 'astro-toc-smol';
-import genMarkdownPages from 'astro-gen-markdown-pages';
-import astroRefs, { remarkAstroRef } from 'astro-refs';
+import toc from 'astro-better-toc';
+import genMarkdownPages from 'astro-better-gen-markdown-pages';
+import astroRefs, { remarkAstroRef } from 'astro-better-refs';
 import { rehypeCodeBlocks, remarkShellSession } from 'astro-better-code-blocks';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import { unified } from '@astrojs/markdown-remark';
-import { remarkMermaidSSR, mermaidTitleFix } from 'astro-mermaid-renderer-cli-smol';
+import { remarkMermaidSSR, mermaidTitleFix } from 'astro-better-mermaid';
 
 const refsState = { refMap: null as any, brokenRefs: [] as string[], duplicates: [] as any[] };
 
@@ -32,7 +32,7 @@ export default defineConfig({
       syntaxHighlight: false,
       processor: markdownProcessor,
     }),
-    tocSmol({ articleSelector: ['article.prose', 'main'] }),
+    toc({ articleSelector: ['article.prose', 'main'] }),
     astroRefs({
       collections: [{ src: 'src/content/', base: '/' }],
       state: refsState,

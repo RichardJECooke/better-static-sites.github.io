@@ -12,12 +12,12 @@ An Astro integration that pre-renders Mermaid diagrams to inline SVG at build ti
 No client-side JavaScript, because diagrams are static SVG in the output HTML.
 No heavyweight browser CLI required, either, because this uses `svgdom` (just a few MBs, a couple of orders of magnitude lighter than Playwright) to render SVGs.
 
-<PkgMeta pkg="astro-mermaid-renderer-cli-smol" />
+<PkgMeta pkg="astro-better-mermaid" />
 
 ## Installation
 
 ```shell-session
-npm install astro-mermaid-renderer-cli-smol mermaid
+npm install astro-better-mermaid mermaid
 ```
 
 ## Setup
@@ -25,7 +25,7 @@ npm install astro-mermaid-renderer-cli-smol mermaid
 In `astro.config.ts`:
 
 ```ts
-import mermaidSSR from 'astro-mermaid-renderer-cli-smol';
+import mermaidSSR from 'astro-better-mermaid';
 
 export default defineConfig({
   integrations: [
@@ -66,7 +66,7 @@ graph TD
 graph LR
   nav-bar --> theme-selector
   docs-sidebar --> sidebar-item
-  toc-smol --> scroll-spy
+  toc --> scroll-spy
   code-blocks --> copy-button
   code-blocks --> shell-session
 ```
@@ -80,7 +80,7 @@ to render Mermaid server-side without a headless browser.
 To use the remark plugin directly without the integration:
 
 ```ts
-import { remarkMermaidSSR } from 'astro-mermaid-renderer-cli-smol';
+import { remarkMermaidSSR } from 'astro-better-mermaid';
 
 export default defineConfig({
   markdown: {

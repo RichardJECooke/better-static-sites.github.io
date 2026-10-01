@@ -2,6 +2,24 @@
   "name": "astro-better-nav-bar",
   "version": "0.2.0",
   "description": "Configurable sticky navigation bar component for Astro with dropdowns, theme selector, search, and CTA slots",
+  "keywords": [
+    "astro",
+    "navbar",
+    "navigation",
+    "header",
+    "theme",
+    "dropdown"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/better-static-sites/better-static-sites.github.io.git",
+    "directory": "astro-better-nav-bar"
+  },
+  "homepage": "https://better-static-sites.github.io",
+  "bugs": {
+    "url": "https://github.com/better-static-sites/better-static-sites.github.io/issues"
+  },
   "type": "module",
   "exports": {
     ".": "./index.js",
@@ -13,7 +31,5 @@
     "*.js",
     "*.astro",
     "*.css"
-  ],
-  "keywords": ["astro", "navbar", "navigation", "header", "theme", "dropdown"],
-  "license": "MIT"
+  ]
 }

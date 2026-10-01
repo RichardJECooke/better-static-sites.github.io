@@ -15,12 +15,12 @@ the final rendered HTML at build time. Includes a scroll spy script that highlig
 the active section as the user scrolls. Optionally renders a collapsible inline TOC
 for narrow screens where the sidebar TOC is hidden.
 
-<PkgMeta pkg="astro-toc-smol" />
+<PkgMeta pkg="astro-better-toc" />
 
 ## Installation
 
 ```shell-session
-npm install astro-toc-smol
+npm install astro-better-toc
 ```
 
 ## Setup
@@ -32,7 +32,7 @@ npm install astro-toc-smol
 In `astro.config.ts`:
 
 ```ts
-import tocSmol from 'astro-toc-smol';
+import tocSmol from 'astro-better-toc';
 
 export default defineConfig({
   integrations: [
@@ -50,7 +50,7 @@ hides the wrapper automatically when the page has no headings.
 
 ```astro
 ---
-import TOC from 'astro-toc-smol/TOC.astro';
+import TOC from 'astro-better-toc/TOC.astro';
 ---
 <aside data-toc-aside>
   <p>On This Page</p>
@@ -67,7 +67,7 @@ classes (see [Styling](#styling) below).
 
 ```astro
 ---
-import InlineTOC from 'astro-toc-smol/InlineTOC.astro';
+import InlineTOC from 'astro-better-toc/InlineTOC.astro';
 ---
 <main>
   <h1>{title}</h1>

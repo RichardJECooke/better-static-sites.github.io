@@ -1,15 +1,31 @@
 {
   "name": "astro-better-details",
   "version": "0.1.3",
-  "type": "module",
   "description": "Expandable details/disclosure component for Astro",
-  "author": "Nathan Contino <ncontino@lambdalatitudinarians.org>",
+  "keywords": [
+    "astro",
+    "astro-component",
+    "details",
+    "disclosure"
+  ],
   "license": "MIT",
-  "keywords": ["astro", "astro-component", "details", "disclosure"],
+  "author": "Nathan Contino <ncontino@lambdalatitudinarians.org>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/better-static-sites/better-static-sites.github.io.git",
+    "directory": "astro-better-details"
+  },
+  "homepage": "https://better-static-sites.github.io",
+  "bugs": {
+    "url": "https://github.com/better-static-sites/better-static-sites.github.io/issues"
+  },
+  "type": "module",
   "exports": {
     "./Details.astro": "./Details.astro"
   },
-  "files": ["Details.astro"],
+  "files": [
+    "Details.astro"
+  ],
   "peerDependencies": {
     "astro": ">=4.0.0"
   }

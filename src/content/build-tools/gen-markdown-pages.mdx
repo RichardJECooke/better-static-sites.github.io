@@ -10,12 +10,12 @@ import PkgMeta from 'src/components/PkgMeta.astro';
 
 An Astro integration that generates `.md` companion files and an `llms.txt` index from your built HTML pages. The `.md` files are Markdown versions of your HTML content, suitable for consumption by LLMs or static site search tools. Instead of using the raw source Markdown, this integration reverse engineers Markdown based on the generated HTML pages to avoid losing content declared in components and included files.
 
-<PkgMeta pkg="astro-gen-markdown-pages" />
+<PkgMeta pkg="astro-better-gen-markdown-pages" />
 
 ## Installation
 
 ```shell-session
-npm install astro-gen-markdown-pages
+npm install astro-better-gen-markdown-pages
 ```
 
 ## Setup
@@ -23,7 +23,7 @@ npm install astro-gen-markdown-pages
 In `astro.config.ts`:
 
 ```ts
-import genMarkdownPages from 'astro-gen-markdown-pages';
+import genMarkdownPages from 'astro-better-gen-markdown-pages';
 
 export default defineConfig({
   integrations: [
@@ -77,7 +77,7 @@ After `astro build`:
 `MarkdownOnly` renders content that is invisible in the browser but included in the generated `.md` output. Use it to add LLM-facing context without cluttering the visual page.
 
 ```mdx
-import MarkdownOnly from 'astro-gen-markdown-pages/MarkdownOnly.astro';
+import MarkdownOnly from 'astro-better-gen-markdown-pages/MarkdownOnly.astro';
 
 <MarkdownOnly>
   This text appears only in the generated .md file, not in the browser.

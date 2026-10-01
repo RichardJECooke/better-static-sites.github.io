@@ -1,0 +1,1 @@
+github.com/nathan-contino/astro-mermaid-renderer-cli-smol.git

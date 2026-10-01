@@ -8,7 +8,7 @@ This repo publishes two separate npm packages:
 
 **`astro-better-declarative-screenshots`** — Astro components for your docs site. Reads committed PNG files and renders them at build time. No Playwright, no Docker, no heavy dependencies.
 
-**`generate-declarative-screenshots`** — CLI that generates the PNG files. Starts Docker, captures pages with Playwright WebKit, injects highlights, composites window chrome, and writes PNGs to your output directory.
+**`astro-better-generate-screenshots`** — CLI that generates the PNG files. Starts Docker, captures pages with Playwright WebKit, injects highlights, composites window chrome, and writes PNGs to your output directory.
 
 ### Why separate?
 
@@ -18,7 +18,7 @@ Screenshot generation also requires a running instance of your app (via Docker),
 
 The typical workflow:
 - `astro-better-declarative-screenshots` is installed as a normal `dependency` of your Astro project.
-- `generate-declarative-screenshots` is installed in a `screenshots/` subdirectory (or a separate repo), invoked manually or on a CI schedule, and never touches your build pipeline.
+- `astro-better-generate-screenshots` is installed in a `screenshots/` subdirectory (or a separate repo), invoked manually or on a CI schedule, and never touches your build pipeline.
 
 ## Installation
 
@@ -35,7 +35,7 @@ Install in a `screenshots/` subdirectory of your Astro project (keeps Playwright
 ```sh
 mkdir screenshots && cd screenshots
 npm init -y
-npm install generate-declarative-screenshots
+npm install astro-better-generate-screenshots
 npx playwright install --with-deps webkit
 ```
 
@@ -187,7 +187,7 @@ Elements with zero dimensions (hidden inputs, `display: none` elements) are skip
 
 ## CLI reference
 
-Both commands are provided by `generate-declarative-screenshots`.
+Both commands are provided by `astro-better-generate-screenshots`.
 
 ### `take-screenshots`
 

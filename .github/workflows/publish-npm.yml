@@ -1,0 +1,37 @@
+# Publishes any package whose version is not yet on npm, on merge to main.
+#
+# All logic lives in scripts/publish-packages.mjs so it can be run locally:
+#
+#   NPM_TOKEN=... node scripts/publish-packages.mjs --dry-run
+#   NPM_TOKEN=... node scripts/publish-packages.mjs --no-provenance
+#
+# Secret required: NPM_TOKEN (npm automation token with publish rights).
+
+name: Publish to npm
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'astro-better-*/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # npm provenance
+
+jobs:
+  publish:
+    name: Publish changed packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      - run: node scripts/publish-packages.mjs
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

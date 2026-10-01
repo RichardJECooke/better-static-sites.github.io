@@ -1,6 +1,6 @@
 // Astro integration entry point.
 // usage in astro.config.mjs:
-//   import screenshots from 'generate-declarative-screenshots';
+//   import screenshots from 'astro-better-generate-screenshots';
 //   export default defineConfig({ integrations: [screenshots()] });
 
 import { loadConfig } from 'astro-better-declarative-screenshots';

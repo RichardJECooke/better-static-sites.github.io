@@ -13,12 +13,12 @@ A post-build integration that checks every internal link and image reference in 
 Astro site for broken destinations. De-duplicates check targets so each unique
 destination is verified exactly once, even if it is linked from hundreds of pages.
 
-<PkgMeta pkg="astro-link-checker" />
+<PkgMeta pkg="astro-better-link-checker" />
 
 ## Installation
 
 ```shell-session
-npm install astro-link-checker
+npm install astro-better-link-checker
 ```
 
 ## Setup
@@ -26,7 +26,7 @@ npm install astro-link-checker
 In `astro.config.ts`:
 
 ```ts
-import linkChecker from 'astro-link-checker';
+import linkChecker from 'astro-better-link-checker';
 
 export default defineConfig({
   integrations: [
