@@ -1,0 +1,33 @@
+---
+title: Groups
+description: Learn how FusionAuth groups work.
+---
+
+import Screenshot from 'astro-better-declarative-screenshots/Screenshot.astro';
+import Highlight from 'astro-better-declarative-screenshots/Highlight.astro';
+
+## Creating a group
+
+Navigate to **Groups** in the FusionAuth Admin UI to manage your groups.
+
+{/* Basic screenshot -- no highlights */}
+<Screenshot url="/admin/group/" />
+
+{/* Screenshot with a highlighted field */}
+<Screenshot url="/admin/group/add">
+  <Highlight selector="#name" style="border" color="#f60" label="Group name field" />
+</Screenshot>
+
+{/* Multiple highlights on one page */}
+<Screenshot url="/admin/group/add">
+  <Highlight selector="#name"        style="border" color="#f60" label="Name" />
+  <Highlight selector="#description" style="arrow"  color="#07c" label="Description" />
+</Screenshot>
+
+{/* Full-page capture with explicit window size */}
+<Screenshot
+  url="/admin/group/members"
+  width={1440}
+  height={900}
+  fullPage={true}
+/>

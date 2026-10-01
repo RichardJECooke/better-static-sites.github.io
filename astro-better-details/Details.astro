@@ -1,0 +1,73 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+interface Props extends HTMLAttributes<'details'> {
+  title?: string;
+}
+
+const { open, class: cls, title, ...rest } = Astro.props;
+---
+
+<details class:list={['abt-details', cls]} open={open} {...rest}>
+  <summary class="abt-details-summary">
+    <span class="abt-details-title">{title}<slot name="title" /></span>
+    <svg class="abt-details-chevron" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+      <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+    </svg>
+  </summary>
+  <div class="abt-details-body">
+    <slot />
+  </div>
+</details>
+
+<style is:global>
+  .abt-details {
+    border: 1px solid var(--abt-details-border, #d1d5db);
+    border-radius: 0.375rem;
+    margin: 1rem 0;
+    overflow: hidden;
+  }
+
+  .abt-details-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    list-style: none;
+    background: var(--abt-details-summary-bg, #f9fafb);
+    font-weight: 500;
+    user-select: none;
+    /* always present so open/close is a color-only change -- no layout shift */
+    border-bottom: 1px solid transparent;
+  }
+
+  .abt-details-summary::-webkit-details-marker { display: none; }
+  .abt-details-summary::marker { display: none; }
+
+  .abt-details[open] > .abt-details-summary {
+    border-bottom-color: var(--abt-details-separator, var(--abt-details-border, #d1d5db));
+  }
+
+  .abt-details-title {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .abt-details-chevron {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+    color: var(--abt-details-chevron, #9ca3af);
+    transition: transform 0.2s ease;
+  }
+
+  .abt-details[open] .abt-details-chevron {
+    transform: rotate(180deg);
+  }
+
+  .abt-details-body {
+    padding: 1rem;
+  }
+</style>

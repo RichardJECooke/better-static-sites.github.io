@@ -1,0 +1,19 @@
+{
+  "name": "astro-better-cards",
+  "version": "1.0.2",
+  "type": "module",
+  "exports": {
+    "./Card.astro": "./Card.astro",
+    "./CardGrid.astro": "./CardGrid.astro",
+    "./ChildCards.astro": "./ChildCards.astro",
+    "./PageNav.astro": "./PageNav.astro"
+  },
+  "dependencies": {
+    "marked": "^12.0.0"
+  },
+  "peerDependencies": {
+    "astro": ">=4.0.0"
+  },
+  "keywords": ["astro", "cards", "docs", "navigation"],
+  "license": "MIT"
+}

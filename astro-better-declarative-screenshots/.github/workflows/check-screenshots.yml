@@ -1,0 +1,68 @@
+name: Check screenshots
+
+on:
+  schedule:
+    # every Monday at 9am UTC -- catches visual drift from app updates
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+    inputs:
+      filter:
+        description: 'Filter: only check screenshots matching this string'
+        required: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps webkit
+
+      - name: Check screenshots
+        run: |
+          FILTER="${{ github.event.inputs.filter }}"
+          if [ -n "$FILTER" ]; then
+            npx check-screenshots --filter="$FILTER" --diff-dir=.screenshot-diffs
+          else
+            npx check-screenshots --diff-dir=.screenshot-diffs
+          fi
+
+      - name: Upload diff artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshot-diffs
+          path: .screenshot-diffs/
+          retention-days: 14
+
+      - name: Comment on PR with diff summary
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const diffs = fs.readdirSync('.screenshot-diffs').filter(f => f.endsWith('.diff.png'));
+            const body = [
+              '## Screenshot changes detected',
+              '',
+              `${diffs.length} screenshot(s) changed:`,
+              ...diffs.map(f => `- \`${f.replace('.diff.png', '')}\``),
+              '',
+              'Download the `screenshot-diffs` artifact to review the changes.',
+              'If they are intentional, run `take-screenshots` locally to update the reference files.',
+            ].join('\n');
+            github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: context.issue.number,
+              body,
+            });

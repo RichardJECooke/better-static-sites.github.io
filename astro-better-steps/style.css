@@ -1,0 +1,88 @@
+/*
+  astro-better-steps/style.css
+  Dark mode: .dark ancestor class (Tailwind darkMode: 'class' compatible).
+
+  CSS custom properties (set on the .steps-container element or any ancestor):
+
+  Light mode defaults (override under a regular selector):
+    --steps-circle-bg      background fill of the number circle
+    --steps-circle-border  border color of the number circle
+    --steps-circle-color   number text color inside the circle
+    --steps-line-color     connecting vertical line color
+
+  Dark mode defaults (override under a .dark selector):
+    same properties apply; the .dark .steps-container block sets them
+*/
+
+.steps-container {
+  --steps-circle-bg:     #eef2ff;
+  --steps-circle-border: #c7d2fe;
+  --steps-circle-color:  #1e1b4b;
+  --steps-line-color:    #c7d2fe;
+}
+
+.dark .steps-container {
+  --steps-circle-bg:     #312e81;
+  --steps-circle-border: #3730a3;
+  --steps-circle-color:  #e0e7ff;
+  --steps-line-color:    #3730a3;
+  /* prose typography plugins (e.g. @tailwindcss/typography) set --tw-prose-bold
+     to a near-black value; only .prose-invert flips it, not .dark. Override
+     here so bold text inside steps stays readable in dark mode. */
+  color: inherit;
+}
+
+.dark .steps-container strong,
+.dark .steps-container b {
+  color: inherit;
+}
+
+.steps-container ol {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+  counter-reset: step;
+}
+
+.steps-container ol > li {
+  position: relative;
+  padding-left: 3rem;
+  padding-bottom: 2rem;
+  min-height: 2rem;
+  counter-increment: step;
+}
+
+/* numbered circle */
+.steps-container ol > li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  height: 2rem;
+  width: 2rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid var(--steps-circle-border);
+  background-color: var(--steps-circle-bg);
+  color: var(--steps-circle-color);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* vertical connector line */
+.steps-container ol > li::after {
+  content: '';
+  position: absolute;
+  bottom: 0.5rem;
+  left: 0.9375rem;
+  top: 2.5rem;
+  width: 1px;
+  background-color: var(--steps-line-color);
+}
+
+.steps-container ol > li:last-child::after {
+  display: none;
+}

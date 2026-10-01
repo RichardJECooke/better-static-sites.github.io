@@ -1,0 +1,29 @@
+{
+  "name": "astro-better-code-blocks",
+  "version": "0.1.4",
+  "description": "Remark/rehype plugins and a copy-code web component for enhanced code blocks in Astro",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./style.css": "./style.css",
+    "./CopyCodeButton.astro": "./CopyCodeButton.astro"
+  },
+  "files": [
+    "*.mjs",
+    "*.js",
+    "*.astro",
+    "*.css"
+  ],
+  "keywords": ["astro", "rehype", "remark", "prism", "code", "syntax-highlighting"],
+  "license": "MIT",
+  "dependencies": {
+    "hast-util-from-html": "^2.0.0",
+    "hast-util-to-text": "^4.0.0",
+    "unist-util-remove-position": "^5.0.0",
+    "unist-util-visit": "^5.0.0"
+  },
+  "peerDependencies": {
+    "@astrojs/prism": ">=3.0.0",
+    "prismjs": ">=1.29.0"
+  }
+}

@@ -1,0 +1,81 @@
+/*
+  astro-better-admonitions/style.css
+
+  Import this in your project root layout to enable admonition and badge styles.
+  No external dependencies -- no Tailwind, no framework.
+
+  Dark mode: uses a .dark ancestor class (e.g. Tailwind's darkMode: 'class').
+  To also support OS dark mode, add a prefers-color-scheme media query in your
+  project CSS that re-declares the .dark rules below, or sets the .dark class.
+
+  All colors are driven by --admonition-color, set inline by the component.
+*/
+
+/* ---------------------------------------------------------------
+   Admonition (block callout)
+--------------------------------------------------------------- */
+
+.admonition {
+  border-left: 4px solid var(--admonition-color, #3b82f6);
+  padding: 1rem;
+  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
+  border-radius: 2px;
+  background-color: color-mix(in srgb, var(--admonition-color, #3b82f6) 10%, white);
+}
+
+.dark .admonition {
+  background-color: color-mix(in srgb, var(--admonition-color, #3b82f6) 20%, #0f172a);
+}
+
+.admonition-title {
+  display: flex;
+  align-items: center;
+  color: var(--admonition-color, #3b82f6);
+}
+
+.dark .admonition-title {
+  color: color-mix(in srgb, var(--admonition-color, #3b82f6) 70%, white);
+}
+
+.admonition-title-bold {
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.admonition-icon {
+  flex-shrink: 0;
+  margin-right: 0.5rem;
+}
+
+.admonition-icon svg path {
+  fill: var(--admonition-color, #3b82f6);
+}
+
+.dark .admonition-icon svg path {
+  fill: color-mix(in srgb, var(--admonition-color, #3b82f6) 70%, white);
+}
+
+.admonition-content > p:first-child { margin-top: 0; }
+.admonition-content > p:last-child { margin-bottom: 0; }
+
+/* ---------------------------------------------------------------
+   Admonition badge (inline pill)
+--------------------------------------------------------------- */
+
+.admonition-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 2px 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--admonition-color, #3b82f6) 40%, transparent);
+  color: var(--admonition-color, #3b82f6);
+}
+
+.dark .admonition-badge {
+  color: color-mix(in srgb, var(--admonition-color, #3b82f6) 80%, white);
+  border-color: color-mix(in srgb, var(--admonition-color, #3b82f6) 50%, transparent);
+}

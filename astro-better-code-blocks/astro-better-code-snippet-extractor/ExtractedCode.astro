@@ -1,0 +1,61 @@
+---
+/**
+ * Loads a code file from disk and renders it with Prism.
+ * Supports two file conventions:
+ *   - Bluehawk snippets: paths containing ".snippet." are resolved relative to snippetRoot
+ *   - Source files: all other paths are resolved relative to sourceRoot
+ */
+
+import { Prism } from '@astrojs/prism';
+import fs from 'fs';
+import path from 'path';
+
+interface Props {
+  /** Path to the file. Snippet detection: if the path contains ".snippet.", reads from snippetRoot; otherwise reads from sourceRoot. */
+  src: string;
+  /** Prism language identifier. Defaults to "plaintext". */
+  lang?: string;
+  /** Optional title shown above the code block as a .code-title tab. */
+  title?: string;
+  /**
+   * Root directory for Bluehawk-generated snippets.
+   * @default path.join(process.cwd(), 'src', 'generated-code-snippets')
+   */
+  snippetRoot?: string;
+  /**
+   * Root directory for raw source files.
+   * @default path.join(process.cwd(), 'extractedcode')
+   */
+  sourceRoot?: string;
+}
+
+const {
+  src,
+  lang = 'plaintext',
+  title,
+  snippetRoot = path.join(process.cwd(), 'src', 'generated-code-snippets'),
+  sourceRoot = path.join(process.cwd(), 'extractedcode'),
+} = Astro.props;
+
+const filePath = src.includes('.snippet.')
+  ? path.join(snippetRoot, src)
+  : path.join(sourceRoot, src);
+
+let code = '';
+try {
+  code = fs.readFileSync(filePath, 'utf-8').trim();
+} catch (err) {
+  throw new Error(
+    `[astro-better-code-snippet-extractor] Could not read ${filePath}: ${(err as Error).message}`
+  );
+}
+---
+
+{title ? (
+  <figure class="code-figure">
+    <figcaption class="code-title">{title}</figcaption>
+    <Prism code={code} lang={lang} />
+  </figure>
+) : (
+  <Prism code={code} lang={lang} />
+)}

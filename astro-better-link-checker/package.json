@@ -1,0 +1,19 @@
+{
+  "name": "astro-better-link-checker",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Fast intra-site broken link and image checker for Astro — deduplicates destinations and checks each one exactly once",
+  "author": "Nathan Contino <ncontino@lambdalatitudinarians.org>",
+  "license": "MIT",
+  "keywords": ["astro", "astro-integration", "link-checker", "broken-links"],
+  "scripts": {
+    "test": "node --test test/test.mjs"
+  },
+  "exports": {
+    ".": "./index.mjs"
+  },
+  "files": ["index.mjs"],
+  "peerDependencies": {
+    "astro": ">=4.0.0"
+  }
+}

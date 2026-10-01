@@ -1,0 +1,199 @@
+---
+import SidebarItem from './SidebarItem.astro';
+
+type FolderBehavior = 'page' | 'unclickable' | 'overview';
+
+interface Props {
+  frontmatter: Record<string, any>;
+  collection: any[];
+  basePath: string;
+  folderBehavior?: FolderBehavior;
+  overviewLabel?: string;
+}
+
+const {
+  frontmatter,
+  collection,
+  basePath,
+  folderBehavior = 'page',
+  overviewLabel = 'Overview',
+} = Astro.props;
+
+const normalizeForMatch = (p: string | null) => {
+  if (!p) return "";
+  let clean = decodeURI(p);
+  if (clean.startsWith(basePath)) clean = clean.substring(basePath.length);
+  return clean.replace(/\.(md|mdx|html)$/i, '').replace(/\/index$/i, '').replace(/^\/+|\/+$/g, '');
+};
+
+const safeCurrentPath = normalizeForMatch(Astro.url.pathname);
+const formatTitle = (str: string) => str.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
+function buildTree(pages: any[]) {
+  const root: any = { children: {}, title: 'Documentation', href: basePath, order: -1 };
+  for (const page of pages) {
+    const { order, hidden, title: dataTitle } = page.data;
+    const label = page.data?.sidebar?.label;
+    const pageFolderBehavior: FolderBehavior | undefined = page.data?.sidebar?.folderBehavior;
+    if (hidden === true) continue;
+
+    const slug = page.slug || page.id || "";
+    const parts = slug.split('/');
+    let current = root;
+
+    if (slug === "index" || slug === "") {
+      root.title = label || dataTitle || root.title;
+      if (order !== undefined) root.order = order;
+      continue;
+    }
+
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i];
+
+      if (part === 'index') {
+        const effective: FolderBehavior = pageFolderBehavior || folderBehavior;
+
+        current.title = label || dataTitle || current.title;
+        if (order !== undefined) current.order = order;
+
+        // route: false pages still contribute title/order but produce no link
+        if (page.data?.route !== false) {
+          const href = `${basePath}/${slug.replace(/\/index$/, "")}`.replace(/\/+/g, '/').replace(/\/$/, "");
+          if (effective === 'page') {
+            current.href = href;
+          } else if (effective === 'overview') {
+            // inject a synthetic first child that links to the index page
+            current.children['__sidebar_overview__'] = {
+              name: '__sidebar_overview__',
+              title: overviewLabel,
+              href,
+              children: {},
+              sortedChildren: [],
+              isOpen: false,
+              isActive: false,
+              order: -Infinity,
+            };
+          }
+          // 'unclickable': no href set, no overview child
+        }
+        break;
+      }
+
+      if (!current.children[part]) {
+        current.children[part] = {
+          name: part,
+          title: formatTitle(part),
+          href: null,
+          children: {},
+          isOpen: false,
+          isActive: false,
+          order: Infinity,
+        };
+      }
+
+      if (i === parts.length - 1) {
+        current.children[part].title = label || dataTitle || formatTitle(part);
+        current.children[part].href = `${basePath}/${slug.replace(/\.(md|mdx)$/i, '')}`.replace(/\/+/g, '/').replace(/\/$/, "");
+        if (order !== undefined) current.children[part].order = order;
+      }
+      current = current.children[part];
+    }
+  }
+  return root;
+}
+
+const treeRoot = buildTree(collection);
+
+function markActiveAndOpen(node: any): boolean {
+  node.isCurrentPage = node.href != null && normalizeForMatch(node.href) === safeCurrentPath;
+  let hasActiveChild = false;
+  for (const key in node.children) {
+    if (markActiveAndOpen(node.children[key])) hasActiveChild = true;
+  }
+  node.isActive = node.isCurrentPage || hasActiveChild;
+  node.isOpen = node.isActive;
+  return node.isActive;
+}
+
+markActiveAndOpen(treeRoot);
+
+function getSortedArray(nodeChildren: Record<string, any>) {
+  const arr = Object.values(nodeChildren);
+  arr.sort((a, b) => {
+    const vA = a.order === undefined ? Infinity : a.order;
+    const vB = b.order === undefined ? Infinity : b.order;
+    return vA !== vB ? vA - vB : a.title.localeCompare(b.title);
+  });
+  arr.forEach(child => {
+    child.sortedChildren = child.children && Object.keys(child.children).length > 0 ? getSortedArray(child.children) : [];
+  });
+  return arr;
+}
+
+const treeArray = getSortedArray(treeRoot.children);
+---
+
+
+<nav>
+  {treeArray.map(node => <SidebarItem node={node} />)}
+</nav>
+
+<style is:global>
+  @reference "tailwindcss";
+
+  aside.aside { @apply w-64 shrink-0 border-r border-gray-200 bg-white pt-2 pr-2; }
+  #side-nav nav { @apply flex flex-col gap-1; }
+
+  /* depth line */
+  #side-nav nav details > div { @apply flex flex-col gap-0.5 pl-3 ml-3 border-l border-slate-200; }
+
+  /* folder header row */
+  #side-nav nav summary { @apply flex items-center justify-between cursor-pointer select-none rounded gap-1 transition-colors text-slate-700; list-style: none; }
+  #side-nav nav summary::-webkit-details-marker { display: none; }
+
+  /* leaf links and folder labels */
+  #side-nav nav :is(a, span) { @apply flex-1 text-sm py-1 px-2 rounded transition-colors no-underline block text-slate-700; }
+  #side-nav nav a { @apply cursor-pointer; }
+  #side-nav nav span { @apply cursor-default; }
+
+  /* chevron */
+  #side-nav nav i { @apply flex items-center justify-center w-7 h-7 rounded text-gray-400 shrink-0 transition-transform; }
+  #side-nav nav i::after { content: ''; @apply w-[0.4rem] h-[0.4rem] border-r-2 border-b-2 border-current block -rotate-45 transition-transform box-border; }
+  #side-nav nav details[open] > summary i::after { @apply rotate-45; }
+
+  /* clicking a closed folder opens it; disables the link's own navigation */
+  #side-nav nav details:not([open]) > summary a { pointer-events: none; }
+
+  /* HOVERS */
+  #side-nav nav a:not(summary a):hover { @apply bg-slate-100 text-indigo-600; }
+  #side-nav nav details:not([open]) > summary:hover,
+  #side-nav nav summary:not(:has(a)):hover { @apply bg-slate-100; }
+  #side-nav nav details:not([open]) > summary:hover :is(a, span),
+  #side-nav nav summary:not(:has(a)):hover span { @apply text-indigo-600; }
+  #side-nav nav details[open] > summary:has(a) a:hover { @apply bg-slate-100 text-indigo-600; }
+  #side-nav nav details[open] > summary:has(a) i:hover { @apply bg-slate-100 text-slate-700; }
+
+  /* ACTIVE & ANCESTOR STATES */
+  #side-nav nav a[aria-current="page"],
+  #side-nav nav summary:has(> a[aria-current="page"]) :is(a, span) { @apply font-semibold text-indigo-600 bg-indigo-50; }
+  #side-nav nav a[data-a],
+  #side-nav nav summary[data-a] :is(a, span) { @apply font-semibold text-slate-900; }
+  #side-nav nav summary:has(> [aria-current="page"]) i,
+  #side-nav nav details:has([aria-current="page"]) > summary i { @apply text-indigo-500; }
+
+  /* DARK MODE */
+  .dark aside.aside { @apply border-gray-800 bg-gray-900; }
+  .dark #side-nav nav :is(a, span) { @apply text-slate-400; }
+  .dark #side-nav nav details > div { @apply border-slate-700; }
+  .dark #side-nav nav a:not(summary a):hover { @apply bg-slate-800 text-indigo-400; }
+  .dark #side-nav nav details:not([open]) > summary:hover,
+  .dark #side-nav nav summary:not(:has(a)):hover { @apply bg-slate-800; }
+  .dark #side-nav nav details:not([open]) > summary:hover :is(a, span),
+  .dark #side-nav nav summary:not(:has(a)):hover span { @apply text-indigo-400; }
+  .dark #side-nav nav details[open] > summary:has(a) a:hover { @apply bg-slate-800 text-indigo-400; }
+  .dark #side-nav nav details[open] > summary:has(a) i:hover { @apply bg-slate-800 text-slate-200; }
+  .dark #side-nav nav a[aria-current="page"],
+  .dark #side-nav nav summary:has(> a[aria-current="page"]) :is(a, span) { @apply text-indigo-400 bg-indigo-950/40; }
+  .dark #side-nav nav a[data-a],
+  .dark #side-nav nav summary[data-a] :is(a, span) { @apply text-white; }
+</style>

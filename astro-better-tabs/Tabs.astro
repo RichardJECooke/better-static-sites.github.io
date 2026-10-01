@@ -1,0 +1,28 @@
+---
+const groupName = `tab-group-${Math.random().toString(36).substring(2, 9)}`;
+
+let html = await Astro.slots.render("default");
+
+// inject the unique group name and mark only the first input as checked
+let isFirst = true;
+html = html.replace(/name="%%TAB_GROUP%%"/g, () => {
+  if (isFirst) {
+    isFirst = false;
+    return `name="${groupName}" checked`;
+  }
+  return `name="${groupName}"`;
+});
+
+// extract input+label pairs into <nav class="tab-bar"> — nav (not div) ensures
+// .tab-panel:nth-of-type(n) counts only panels as direct div children of .tabs-group
+const barItems = [];
+html = html.replace(/<div class="tab-bar-item">([\s\S]*?)<\/div>/g, (_, inner) => {
+  barItems.push(inner);
+  return '';
+});
+html = `<nav class="tab-bar">${barItems.join('')}</nav>` + html;
+---
+
+<div class="tabs-group">
+  <Fragment set:html={html} />
+</div>

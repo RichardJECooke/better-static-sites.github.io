@@ -1,0 +1,31 @@
+---
+interface Props {
+  selector: string;
+  style?: 'border' | 'arrow' | 'both';
+  color?: string;
+  label?: string;
+  borderWidth?: number;
+}
+
+const {
+  selector,
+  style = 'border',
+  color = '#f60',
+  label,
+  borderWidth = 3,
+} = Astro.props;
+---
+{/*
+  Renders a hidden sentinel element that Screenshot.astro parses at build time
+  to discover which elements to highlight and how.
+  The custom element is stripped from the final HTML by the screenshot pipeline.
+*/}
+<screenshot-highlight
+  data-selector={selector}
+  data-style={style}
+  data-color={color}
+  data-label={label ?? ''}
+  data-border-width={String(borderWidth)}
+  aria-hidden="true"
+  style="display:none"
+></screenshot-highlight>

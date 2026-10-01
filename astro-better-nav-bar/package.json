@@ -1,0 +1,19 @@
+{
+  "name": "astro-better-nav-bar",
+  "version": "0.2.0",
+  "description": "Configurable sticky navigation bar component for Astro with dropdowns, theme selector, search, and CTA slots",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./style.css": "./style.css",
+    "./NavBar.astro": "./NavBar.astro",
+    "./ThemeSelector.astro": "./ThemeSelector.astro"
+  },
+  "files": [
+    "*.js",
+    "*.astro",
+    "*.css"
+  ],
+  "keywords": ["astro", "navbar", "navigation", "header", "theme", "dropdown"],
+  "license": "MIT"
+}

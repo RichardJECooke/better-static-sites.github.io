@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "workspaces": ["use-screenshots", "generate-screenshots"],
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "^2.0.0",
+    "astro": "^4.0.0"
+  }
+}

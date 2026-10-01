@@ -1,0 +1,453 @@
+---
+import { deriveName } from './src/naming.mjs';
+import { loadConfig } from './src/config.mjs';
+import { existsSync } from 'fs';
+import path from 'path';
+
+interface HighlightData {
+  selector: string;
+  style: string;
+  color: string;
+  label: string;
+  borderWidth: number;
+}
+
+interface Props {
+  url: string;
+  /** explicit filename (without extension) -- overrides auto-derived name */
+  id?: string;
+  /** alt text for the rendered image */
+  alt?: string;
+  /** override window width for this screenshot */
+  width?: number;
+  /** override window height for this screenshot */
+  height?: number;
+  /** capture the full scrollable page height */
+  fullPage?: boolean;
+  /** outputDir relative to project root; falls back to env SCREENSHOTS_DIR or 'src/assets/screenshots' */
+  outputDir?: string;
+}
+
+const {
+  url,
+  id,
+  alt,
+  width,
+  height,
+  fullPage = false,
+  outputDir,
+} = Astro.props;
+
+function parseHighlights(html: string): HighlightData[] {
+  const found: HighlightData[] = [];
+  const tagRe = /<screenshot-highlight([^>]*)>/gi;
+  const attrRe = /data-([\w-]+)="([^"]*)"/g;
+  let tagMatch: RegExpExecArray | null;
+  while ((tagMatch = tagRe.exec(html)) !== null) {
+    const attrs: Record<string, string> = {};
+    let attrMatch: RegExpExecArray | null;
+    while ((attrMatch = attrRe.exec(tagMatch[1])) !== null) {
+      attrs[attrMatch[1]] = attrMatch[2];
+    }
+    if (attrs['selector']) {
+      found.push({
+        selector:    attrs['selector'] ?? '',
+        style:       attrs['style'] ?? 'border',
+        color:       attrs['color'] ?? '#f60',
+        label:       attrs['label'] ?? '',
+        borderWidth: parseInt(attrs['border-width'] ?? '3', 10),
+      });
+    }
+  }
+  return found;
+}
+
+const slotHtml = Astro.slots.has('default') ? await Astro.slots.render('default') : '';
+const highlights = parseHighlights(slotHtml);
+const name = id ?? deriveName(url, highlights);
+
+let resolvedOutputDir = outputDir ?? process.env.SCREENSHOTS_DIR;
+let chrome = { style: 'safari-macos', renderIn: 'png', showUrl: true, theme: 'light',
+               shadowBlur: 40, shadowPadding: 48, baseUrl: undefined as string | undefined };
+let configBaseUrl = '';
+if (!resolvedOutputDir) {
+  try {
+    const cfg = await loadConfig(process.cwd());
+    resolvedOutputDir = cfg.outputDir;
+    chrome = cfg.chrome as typeof chrome;
+    configBaseUrl = cfg.baseUrl ?? '';
+  } catch {
+    resolvedOutputDir = 'src/assets/screenshots';
+  }
+}
+
+const servePath = resolvedOutputDir
+  .replace(/^\.\//, '')
+  .replace(/^public\//, '');
+const imgPath = `/${servePath}/${name}.png`;
+
+const absolutePath = path.resolve(process.cwd(), resolvedOutputDir, `${name}.png`);
+const fileExists = existsSync(absolutePath);
+
+const strict = process.env.SCREENSHOTS_STRICT === 'true';
+if (!fileExists && strict) {
+  throw new Error(
+    `[astro-better-declarative-screenshots] Missing screenshot: ${name}.png\n` +
+    `Run \`take-screenshots\` to generate it, or set SCREENSHOTS_STRICT=false to use placeholders.`
+  );
+}
+
+const specData = JSON.stringify({ url, highlights, width, height, fullPage });
+
+const cssChrome = chrome.renderIn === 'css' && chrome.style !== 'none';
+let displayUrl = url;
+if (chrome.baseUrl && configBaseUrl && displayUrl.startsWith(configBaseUrl)) {
+  displayUrl = chrome.baseUrl.replace(/\/$/, '') + displayUrl.slice(configBaseUrl.length);
+}
+if (displayUrl.length > 72) displayUrl = displayUrl.slice(0, 69) + '...';
+---
+
+<figure
+  class="screenshot-figure"
+  data-screenshot-name={name}
+  data-screenshot-spec={specData}
+>
+  {cssChrome ? (
+    <div class="sc-window" data-chrome={chrome.style} data-theme={chrome.theme}>
+      <div class="sc-bar">
+        <div class="sc-lights">
+          <span class="sc-tl sc-close"></span>
+          <span class="sc-tl sc-min"></span>
+          <span class="sc-tl sc-zoom"></span>
+        </div>
+        {chrome.showUrl && (
+          <div class="sc-urlbar" aria-hidden="true">
+            <span class="sc-url">{displayUrl}</span>
+          </div>
+        )}
+      </div>
+      <div class="sc-content">
+        {fileExists ? (
+          <img
+            src={imgPath}
+            alt={alt ?? name.replace(/-/g, ' ')}
+            loading="lazy"
+            decoding="async"
+          />
+        ) : (
+          <div
+            class="sc-placeholder"
+            role="img"
+            aria-label={alt ?? `Placeholder for ${name}`}
+          >
+            Screenshot not yet generated: {name}.png &mdash;
+            run <code>take-screenshots</code> to generate it.
+          </div>
+        )}
+      </div>
+    </div>
+  ) : (
+    fileExists ? (
+      <img
+        src={imgPath}
+        alt={alt ?? name.replace(/-/g, ' ')}
+        loading="lazy"
+        decoding="async"
+        class="screenshot-img"
+      />
+    ) : (
+      <div
+        class="screenshot-placeholder"
+        role="img"
+        aria-label={alt ?? `Placeholder for ${name}`}
+        style={`width:${width ?? 1280}px;max-width:100%;aspect-ratio:${(width ?? 1280) / (height ?? 800)};background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-family:sans-serif;color:#999;font-size:14px;border:1px dashed #ccc;`}
+      >
+        Screenshot not yet generated: {name}.png<br />
+        Run <code>take-screenshots</code> to generate it.
+      </div>
+    )
+  )}
+</figure>
+
+<style>
+  /* ── layout ── */
+  .sc-window {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    overflow: hidden;
+    border-radius: var(--sc-r);
+    box-shadow: var(--sc-shadow);
+  }
+
+  .sc-bar {
+    display: flex;
+    align-items: center;
+    height: var(--sc-bar-h, 40px);
+    padding: 0 14px;
+    flex-shrink: 0;
+    background: var(--sc-bar-bg);
+    border-bottom: 1px solid var(--sc-bar-sep);
+  }
+
+  .sc-lights {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .sc-tl {
+    display: block;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .sc-close { background: var(--sc-tl-close); }
+  .sc-min   { background: var(--sc-tl-min); }
+  .sc-zoom  { background: var(--sc-tl-zoom); }
+
+  .sc-urlbar {
+    flex: 1;
+    margin: 0 14px;
+    height: 26px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px;
+    overflow: hidden;
+    background: var(--sc-url-bg);
+    border: 1px solid var(--sc-url-border);
+  }
+
+  .sc-url {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    font-size: 12px;
+    color: var(--sc-url-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  .sc-content {
+    line-height: 0;
+    overflow: hidden;
+  }
+
+  .sc-content img {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0;
+  }
+
+  .sc-placeholder {
+    background: #f0f0f0;
+    padding: 2rem;
+    font-family: sans-serif;
+    font-size: 14px;
+    color: #999;
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  /* ── safari-macos light ── */
+  .sc-window[data-chrome="safari-macos"] {
+    --sc-r: 10px;
+    --sc-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.08),
+                 0 6px 8px rgba(0, 0, 0, 0.05),
+                 0 16px 16px rgba(0, 0, 0, 0.06),
+                 0 36px 28px rgba(0, 0, 0, 0.05);
+    --sc-bar-bg: linear-gradient(to bottom, #e8e8e8, #dcdcdc);
+    --sc-bar-sep: #b8b8b8;
+    --sc-url-bg: #ffffff;
+    --sc-url-border: #cacaca;
+    --sc-url-text: #666666;
+    --sc-tl-close: #ff5f57;
+    --sc-tl-min: #febc2e;
+    --sc-tl-zoom: #28c840;
+  }
+
+  /* ── safari-macos dark ── */
+  .sc-window[data-chrome="safari-macos"][data-theme="dark"],
+  :root[data-theme="dark"] .sc-window[data-chrome="safari-macos"],
+  :root.dark .sc-window[data-chrome="safari-macos"] {
+    --sc-bar-bg: linear-gradient(to bottom, #323232, #2c2c2c);
+    --sc-bar-sep: #1a1a1a;
+    --sc-url-bg: #454547;
+    --sc-url-border: #5a5a5c;
+    --sc-url-text: #f0f0f0;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .sc-window[data-chrome="safari-macos"]:not([data-theme="light"]) {
+      --sc-bar-bg: linear-gradient(to bottom, #323232, #2c2c2c);
+      --sc-bar-sep: #1a1a1a;
+      --sc-url-bg: #454547;
+      --sc-url-border: #5a5a5c;
+      --sc-url-text: #f0f0f0;
+    }
+  }
+
+  /* ── linux/gnome light ── */
+  .sc-window[data-chrome="linux"] {
+    --sc-r: 8px;
+    --sc-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.14),
+                 0 6px 8px rgba(0, 0, 0, 0.06),
+                 0 18px 24px rgba(0, 0, 0, 0.08);
+    --sc-bar-bg: #edeceb;
+    --sc-bar-sep: rgba(0, 0, 0, 0.10);
+    --sc-url-bg: #ffffff;
+    --sc-url-border: rgba(0, 0, 0, 0.22);
+    --sc-url-text: #555555;
+    --sc-tl-close: #e05555;
+    --sc-tl-min: #b8b8b8;
+    --sc-tl-zoom: #b8b8b8;
+  }
+
+  /* ── linux dark (solarized) ── */
+  .sc-window[data-chrome="linux"][data-theme="dark"],
+  :root[data-theme="dark"] .sc-window[data-chrome="linux"],
+  :root.dark .sc-window[data-chrome="linux"] {
+    --sc-bar-bg: #1a2d40;
+    --sc-bar-sep: #0f1c2c;
+    --sc-url-bg: #0f1c2c;
+    --sc-url-border: #2e4460;
+    --sc-url-text: #7a90a8;
+    --sc-tl-close: #dc322f;
+    --sc-tl-min: #2e4460;
+    --sc-tl-zoom: #2e4460;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .sc-window[data-chrome="linux"]:not([data-theme="light"]) {
+      --sc-bar-bg: #1a2d40;
+      --sc-bar-sep: #0f1c2c;
+      --sc-url-bg: #0f1c2c;
+      --sc-url-border: #2e4460;
+      --sc-url-text: #7a90a8;
+      --sc-tl-close: #dc322f;
+      --sc-tl-min: #2e4460;
+      --sc-tl-zoom: #2e4460;
+    }
+  }
+
+  /* ── windows light ── */
+  .sc-window[data-chrome="windows"] {
+    --sc-r: 8px;
+    --sc-bar-h: 32px;
+    --sc-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.08),
+                 0 6px 8px rgba(0, 0, 0, 0.05),
+                 0 18px 24px rgba(0, 0, 0, 0.07);
+    --sc-bar-bg: #f3f3f3;
+    --sc-bar-sep: rgba(0, 0, 0, 0.06);
+    --sc-url-bg: #ffffff;
+    --sc-url-border: rgba(0, 0, 0, 0.12);
+    --sc-url-text: #555555;
+    --sc-tl-close: transparent;
+    --sc-tl-min: transparent;
+    --sc-tl-zoom: transparent;
+  }
+
+  /* strip right padding so controls sit flush against the edge */
+  .sc-window[data-chrome="windows"] .sc-bar { padding-right: 0; }
+
+  /* move url bar left, controls right */
+  .sc-window[data-chrome="windows"] .sc-urlbar { order: 1; margin-left: 0; }
+  .sc-window[data-chrome="windows"] .sc-lights  { order: 2; gap: 0; margin-left: 14px; align-self: stretch; align-items: stretch; }
+
+  /* windows order: min − max □ close ✕ */
+  .sc-window[data-chrome="windows"] .sc-min   { order: 1; }
+  .sc-window[data-chrome="windows"] .sc-zoom  { order: 2; }
+  .sc-window[data-chrome="windows"] .sc-close { order: 3; }
+
+  /* rectangular flat buttons with symbols */
+  .sc-window[data-chrome="windows"] .sc-tl {
+    width: 46px;
+    height: auto;
+    border-radius: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font: 13px/1 'Segoe UI', system-ui, sans-serif;
+    color: #333;
+  }
+
+  .sc-window[data-chrome="windows"] .sc-min::after   { content: '\2212'; }
+  .sc-window[data-chrome="windows"] .sc-zoom::after  { content: '\25A1'; }
+  .sc-window[data-chrome="windows"] .sc-close::after { content: '\00D7'; font-size: 16px; }
+
+  /* ── windows dark ── */
+  .sc-window[data-chrome="windows"][data-theme="dark"],
+  :root[data-theme="dark"] .sc-window[data-chrome="windows"],
+  :root.dark .sc-window[data-chrome="windows"] {
+    --sc-bar-bg: #202020;
+    --sc-bar-sep: rgba(255, 255, 255, 0.06);
+    --sc-url-bg: #2d2d2d;
+    --sc-url-border: rgba(255, 255, 255, 0.10);
+    --sc-url-text: #c0c0c0;
+  }
+
+  .sc-window[data-chrome="windows"][data-theme="dark"] .sc-tl,
+  :root[data-theme="dark"] .sc-window[data-chrome="windows"] .sc-tl,
+  :root.dark .sc-window[data-chrome="windows"] .sc-tl { color: #c0c0c0; }
+
+  @media (prefers-color-scheme: dark) {
+    .sc-window[data-chrome="windows"]:not([data-theme="light"]) {
+      --sc-bar-bg: #202020;
+      --sc-bar-sep: rgba(255, 255, 255, 0.06);
+      --sc-url-bg: #2d2d2d;
+      --sc-url-border: rgba(255, 255, 255, 0.10);
+      --sc-url-text: #c0c0c0;
+    }
+    .sc-window[data-chrome="windows"]:not([data-theme="light"]) .sc-tl { color: #c0c0c0; }
+  }
+
+  /* ── golden-gate light ── */
+  .sc-window[data-chrome="golden-gate"] {
+    --sc-r: 14px;
+    --sc-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.10),
+                 0 8px 10px rgba(0, 0, 0, 0.06),
+                 0 22px 22px rgba(0, 0, 0, 0.08),
+                 0 48px 36px rgba(0, 0, 0, 0.06);
+    --sc-bar-bg: linear-gradient(to bottom, #efefef, #e8e8e8);
+    --sc-bar-sep: rgba(0, 0, 0, 0.12);
+    --sc-url-bg: rgba(255, 255, 255, 0.88);
+    --sc-url-border: rgba(0, 0, 0, 0.14);
+    --sc-url-text: #666666;
+    --sc-tl-close: #e8524a;
+    --sc-tl-min: #e6be46;
+    --sc-tl-zoom: #5cc84e;
+  }
+
+  /* ── golden-gate dark ── */
+  .sc-window[data-chrome="golden-gate"][data-theme="dark"],
+  :root[data-theme="dark"] .sc-window[data-chrome="golden-gate"],
+  :root.dark .sc-window[data-chrome="golden-gate"] {
+    --sc-bar-bg: linear-gradient(to bottom, #2d2d2d, #272727);
+    --sc-bar-sep: rgba(255, 255, 255, 0.08);
+    --sc-url-bg: rgba(56, 56, 58, 0.9);
+    --sc-url-border: rgba(255, 255, 255, 0.1);
+    --sc-url-text: #e0e0e0;
+    --sc-tl-close: #c94847;
+    --sc-tl-min: #b89b38;
+    --sc-tl-zoom: #4ba043;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .sc-window[data-chrome="golden-gate"]:not([data-theme="light"]) {
+      --sc-bar-bg: linear-gradient(to bottom, #2d2d2d, #272727);
+      --sc-bar-sep: rgba(255, 255, 255, 0.08);
+      --sc-url-bg: rgba(56, 56, 58, 0.9);
+      --sc-url-border: rgba(255, 255, 255, 0.1);
+      --sc-url-text: #e0e0e0;
+      --sc-tl-close: #c94847;
+      --sc-tl-min: #b89b38;
+      --sc-tl-zoom: #4ba043;
+    }
+  }
+</style>

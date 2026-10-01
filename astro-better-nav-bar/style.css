@@ -1,0 +1,478 @@
+/*
+  astro-better-nav-bar/style.css
+
+  Import in your project root layout.
+  No Tailwind required -- all styles are plain CSS.
+
+  CSS custom properties (set on :root or .nav-header's ancestors):
+    --nav-bg              header background                default: #0f172a (slate-900)
+    --nav-border          header bottom border             default: #475569 (slate-600)
+    --nav-text            primary nav text color           default: #ffffff
+    --nav-text-muted      muted text (breadcrumbs, sep)    default: #94a3b8 (slate-400)
+    --nav-hover           interactive hover color          default: #6366f1 (indigo-500)
+    --nav-mobile-item-bg  mobile dropdown pill bg          default: #1e293b (slate-800)
+    --nav-mobile-item-border mobile dropdown pill border   default: #475569 (slate-600)
+    --nav-dropdown-bg     dropdown panel background        default: #ffffff
+    --nav-dropdown-bg-dark dropdown panel bg dark mode     default: #0f172a
+    --nav-dropdown-border dropdown border                  default: #64748b (slate-500)
+    --nav-dropdown-text   dropdown item text               default: #374151 (gray-700)
+    --nav-dropdown-hover-bg hover bg in dropdown           default: #f1f5f9 (slate-100)
+    --nav-dropdown-hover-text hover text in dropdown       default: #4338ca (indigo-600)
+    --nav-cta-bg          CTA button background            default: #f97316 (orange-500)
+    --nav-cta-hover-bg    CTA button hover background      default: #ea580c (orange-600)
+    --nav-cta-text        CTA button text                  default: #ffffff
+    --nav-max-width       desktop bar max width            default: 90rem
+*/
+
+/* ---------------------------------------------------------------
+   Header shell
+--------------------------------------------------------------- */
+
+.nav-header {
+  background-color: var(--nav-bg, #0f172a);
+  border-bottom: 1px solid var(--nav-border, #475569);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  text-align: left;
+}
+
+/* ---------------------------------------------------------------
+   Desktop bar
+--------------------------------------------------------------- */
+
+.nav-desktop {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .nav-desktop {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: var(--nav-max-width, 90rem);
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0.5rem 1rem;
+  }
+}
+
+/* brand */
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-shrink: 0;
+}
+
+.nav-logo-link {
+  display: flex;
+  align-items: center;
+  margin-right: 0.25rem;
+  opacity: 1;
+  transition: opacity 0.15s ease-in;
+  text-decoration: none;
+}
+
+.nav-logo-link:hover {
+  opacity: 0.7;
+}
+
+.nav-brand-sep {
+  font-weight: 300;
+  font-size: 1.5rem;
+  color: var(--nav-text-muted, #94a3b8);
+  margin: 0 0.25rem;
+  line-height: 1;
+}
+
+.nav-brand-title {
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--nav-text, #ffffff);
+  letter-spacing: -0.025em;
+  text-decoration: none;
+  transition: color 0.15s ease-in;
+}
+
+.nav-brand-title:hover {
+  color: var(--nav-text-muted, #94a3b8);
+}
+
+/* dropdowns nav */
+.nav-dropdowns {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  padding: 0;
+  z-index: 50;
+}
+
+/* ---------------------------------------------------------------
+   Shared dropdown primitives (desktop + mobile)
+--------------------------------------------------------------- */
+
+.nav-dropdown-root {
+  position: relative;
+}
+
+/* chevron arrow via CSS */
+.nav-dropdown-summary,
+.nav-mobile-dropdown-summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.nav-dropdown-summary::-webkit-details-marker,
+.nav-mobile-dropdown-summary::-webkit-details-marker {
+  display: none;
+}
+
+.nav-dropdown-summary::after,
+.nav-mobile-dropdown-summary::after {
+  content: '';
+  display: inline-block;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  margin-left: 0.375rem;
+  margin-bottom: 0.125rem;
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+  vertical-align: middle;
+}
+
+details[open] > .nav-dropdown-summary::after,
+details[open] > .nav-mobile-dropdown-summary::after {
+  transform: rotate(-135deg);
+  margin-bottom: -0.125rem;
+}
+
+/* desktop dropdown summary */
+.nav-dropdown-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--nav-text, #ffffff);
+  padding: 0.25rem 0.75rem;
+  transition: color 0.15s;
+}
+
+.nav-dropdown-summary:hover,
+details[open] > .nav-dropdown-summary {
+  color: var(--nav-hover, #6366f1);
+}
+
+/* dropdown panel */
+.nav-dropdown-panel {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 0.75rem;
+  width: 12rem;
+  background-color: var(--nav-dropdown-bg, #ffffff);
+  border: 1px solid var(--nav-dropdown-border, #64748b);
+  border-radius: 0.375rem;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  overflow: hidden;
+  z-index: 50;
+}
+
+.dark .nav-dropdown-panel {
+  background-color: var(--nav-dropdown-bg-dark, #0f172a);
+  border-color: #1e293b;
+}
+
+/* left-aligned variant for mobile dropdowns */
+.nav-dropdown-panel--left {
+  right: auto;
+  left: 0;
+  z-index: 60;
+}
+
+.nav-dropdown-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-dropdown-item {
+  margin: 0;
+  padding: 0;
+}
+
+/* shared styles for <a> links and <button> options in dropdowns */
+.nav-dropdown-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--nav-dropdown-text, #374151);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s, color 0.15s;
+  text-align: left;
+}
+
+.dark .nav-dropdown-link {
+  color: #cbd5e1;
+}
+
+.nav-dropdown-link:hover {
+  background-color: var(--nav-dropdown-hover-bg, #f1f5f9);
+  color: var(--nav-dropdown-hover-text, #4338ca);
+  text-decoration: none;
+}
+
+.dark .nav-dropdown-link:hover {
+  background-color: #1e293b;
+  color: #818cf8;
+}
+
+/* ---------------------------------------------------------------
+   Desktop action buttons
+--------------------------------------------------------------- */
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: 0.5rem;
+}
+
+.nav-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.75rem;
+  width: 1.75rem;
+  border-radius: 0.25rem;
+  border: none;
+  background: transparent;
+  color: var(--nav-text, #ffffff);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+  padding: 0;
+}
+
+.nav-icon-btn:hover {
+  background-color: rgba(255,255,255,0.1);
+  color: var(--nav-hover, #6366f1);
+}
+
+.nav-login-link {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--nav-text, #ffffff);
+  text-decoration: none;
+  padding: 0 0.75rem;
+  transition: color 0.15s;
+}
+
+.nav-login-link:hover {
+  color: var(--nav-hover, #6366f1);
+  text-decoration: none;
+}
+
+.nav-cta-btn {
+  display: inline-block;
+  background-color: var(--nav-cta-bg, #f97316);
+  color: var(--nav-cta-text, #ffffff);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.25rem;
+  text-decoration: none;
+  margin-left: 0.75rem;
+  transition: background-color 0.15s;
+}
+
+.nav-cta-btn:hover {
+  background-color: var(--nav-cta-hover-bg, #ea580c);
+  text-decoration: none;
+  color: var(--nav-cta-text, #ffffff);
+}
+
+/* ---------------------------------------------------------------
+   Theme selector
+--------------------------------------------------------------- */
+
+.nav-theme-selector {
+  position: relative;
+  display: block;
+  z-index: 10;
+}
+
+/* mobile: single toggle, show moon (light mode) or sun (dark mode) */
+.nav-theme-mobile-btn {
+  display: flex;
+}
+
+.nav-theme-mobile-btn .nav-theme-sun-icon {
+  display: none;
+}
+
+.nav-theme-mobile-btn .nav-theme-moon-icon {
+  display: block;
+}
+
+.dark .nav-theme-mobile-btn .nav-theme-sun-icon {
+  display: block;
+}
+
+.dark .nav-theme-mobile-btn .nav-theme-moon-icon {
+  display: none;
+}
+
+/* desktop: full dropdown, always show moon icon in summary */
+.nav-theme-details {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .nav-theme-mobile-btn {
+    display: none;
+  }
+
+  .nav-theme-details {
+    display: block;
+  }
+}
+
+.nav-theme-details-summary {
+  list-style: none;
+  outline: none;
+}
+
+.nav-theme-details-summary::-webkit-details-marker {
+  display: none;
+}
+
+/* no chevron on the theme summary */
+.nav-theme-details-summary::after {
+  display: none;
+}
+
+.nav-theme-panel {
+  right: 0;
+  width: 9rem;
+  margin-top: 0.75rem;
+}
+
+/* ---------------------------------------------------------------
+   Mobile bar
+--------------------------------------------------------------- */
+
+.nav-mobile {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  gap: 0.5rem;
+}
+
+@media (min-width: 1024px) {
+  .nav-mobile {
+    display: none;
+  }
+}
+
+/* mobile dropdown pills */
+.nav-mobile-dropdowns {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.nav-mobile-dropdown-summary {
+  display: flex;
+  align-items: center;
+  padding: 0.375rem 0.5rem;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  color: #cbd5e1;
+  background-color: var(--nav-mobile-item-bg, #1e293b);
+  border: 1px solid var(--nav-mobile-item-border, #475569);
+  border-radius: 0.25rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.nav-mobile-dropdown-summary:hover {
+  color: var(--nav-text, #ffffff);
+  background-color: #334155;
+}
+
+/* breadcrumbs */
+.nav-breadcrumbs {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.nav-breadcrumbs::-webkit-scrollbar {
+  display: none;
+}
+
+.nav-breadcrumb-list {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  white-space: nowrap;
+}
+
+.nav-breadcrumb-item {
+  display: inline-block;
+}
+
+.nav-breadcrumb-item a {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--nav-text-muted, #94a3b8);
+  text-decoration: none;
+  text-transform: capitalize;
+  transition: color 0.15s;
+}
+
+.nav-breadcrumb-item a:hover {
+  color: var(--nav-hover, #6366f1);
+}
+
+.nav-breadcrumb-sep {
+  margin: 0 0.5rem;
+  color: var(--nav-text-muted, #94a3b8);
+  font-size: 0.875rem;
+}
+
+/* mobile action buttons (pushed right) */
+.nav-mobile-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}

@@ -1,0 +1,364 @@
+/*
+  astro-better-release-notes/style.css
+
+  Import this in your project root layout to enable release notes styles.
+  No external dependencies -- no Tailwind, no framework.
+
+  Dark mode: uses a .dark ancestor class (e.g. Tailwind's darkMode: 'class').
+  See README for enabling OS-based dark mode without a class toggle.
+
+  Category colors: set --rn-color-{id} on :root / .dark to override per-category
+  badge and chip colors without touching component code. E.g.:
+    :root { --rn-color-enhancement: #7c3aed; }
+    .dark  { --rn-color-enhancement: #fb923c; }
+
+  Built-in category defaults (CSS fallback, also used by DEFAULT_CATEGORIES):
+    --rn-color-new-feature:     #16a34a
+    --rn-color-enhancement:     #2563eb
+    --rn-color-fix:             #d97706
+    --rn-color-security:        #566f98
+    --rn-color-deprecated:      #ffcc48
+    --rn-color-breaking-change: #aaaa33
+    --rn-color-known-issue:     #bb4448
+    --rn-color-internal:        #71717a
+
+  Sticky offset configuration:
+    Set --release-notes-top on :root (or any ancestor of .release-sticky-header)
+    to match your site's fixed navigation height. Defaults to 3.5rem (56px).
+
+    Example:
+      :root { --release-notes-top: 57px; }
+      @media (min-width: 1024px) { :root { --release-notes-top: 80px; } }
+*/
+
+/* ---------------------------------------------------------------
+   Sticky header (selector + filter toggle + chips)
+--------------------------------------------------------------- */
+
+.release-sticky-header {
+  position: sticky;
+  top: var(--release-notes-top, 3.5rem);
+  z-index: 11;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  background-color: var(--rn-bg, white);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+  margin-bottom: 0.5rem;
+}
+
+.dark .release-sticky-header {
+  background-color: var(--rn-bg, #0f172a);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* ---------------------------------------------------------------
+   Version selector (jump dropdown)
+--------------------------------------------------------------- */
+
+.release-selector {
+  flex: 1;
+  min-width: 200px;
+}
+
+.release-selector-select {
+  width: 100%;
+  height: 2.5rem;
+  padding: 0 0.5rem;
+  border-radius: 6px;
+  border: 2px solid var(--rn-border, #d1d5db);
+  background-color: var(--rn-input-bg, #f3f4f6);
+  color: var(--rn-text, #111827);
+  cursor: pointer;
+}
+
+.release-selector-select:focus {
+  outline: 2px solid var(--rn-focus, #6366f1);
+  outline-offset: 1px;
+}
+
+.dark .release-selector-select {
+  border-color: var(--rn-border, #4b5563);
+  background-color: var(--rn-input-bg, #1e293b);
+  color: var(--rn-text, #cbd5e1);
+}
+
+/* ---------------------------------------------------------------
+   Filter toggle button (mobile only)
+--------------------------------------------------------------- */
+
+.filter-toggle-btn {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.4375rem 0.75rem;
+  height: 2.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 6px;
+  border: 2px solid var(--rn-border, #d1d5db);
+  background-color: var(--rn-input-bg, #f3f4f6);
+  color: var(--rn-text-muted, #374151);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.filter-toggle-btn:focus {
+  outline: 2px solid var(--rn-focus, #6366f1);
+  outline-offset: 1px;
+}
+
+.dark .filter-toggle-btn {
+  border-color: var(--rn-border, #4b5563);
+  background-color: var(--rn-input-bg, #1e293b);
+  color: var(--rn-text, #cbd5e1);
+}
+
+/* indicate active filters */
+.release-container:has(.filter-input:checked) .filter-toggle-btn {
+  border-color: var(--rn-focus, #6366f1);
+  background-color: color-mix(in srgb, var(--rn-focus, #6366f1) 12%, transparent);
+  color: var(--rn-focus, #6366f1);
+}
+
+.dark .release-container:has(.filter-input:checked) .filter-toggle-btn {
+  border-color: var(--rn-focus, #818cf8);
+  color: var(--rn-focus, #818cf8);
+  background-color: color-mix(in srgb, var(--rn-focus, #818cf8) 15%, transparent);
+}
+
+@media (min-width: 1024px) {
+  .filter-toggle-btn {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------------
+   Filter controls (category chips)
+--------------------------------------------------------------- */
+
+/* hidden on mobile by default; shown via .is-open (JS) or desktop breakpoint */
+@media (max-width: 1023px) {
+  .filter-controls {
+    display: none;
+  }
+
+  .filter-controls.is-open {
+    display: flex;
+  }
+}
+
+@media (min-width: 1024px) {
+  .filter-controls {
+    display: flex;
+  }
+}
+
+.filter-controls {
+  flex: 0 0 100%;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.25rem 0;
+}
+
+.filter-input {
+  display: none;
+}
+
+.filter-chip {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: filter 0.15s ease-in-out;
+  opacity: 0.7;
+  filter: grayscale(100%);
+  color: var(--rn-chip-color, #334155);
+  background-color: var(--rn-chip-bg, #f1f5f9);
+  border: 1px solid var(--rn-chip-border, #cbd5e1);
+}
+
+.dark .filter-chip {
+  color: var(--rn-chip-color, #cbd5e1);
+  background-color: var(--rn-chip-bg, #1e293b);
+  border-color: var(--rn-chip-border, #475569);
+}
+
+.filter-chip:hover {
+  filter: grayscale(100%) brightness(0.95);
+}
+
+.dark .filter-chip:hover {
+  filter: grayscale(100%) brightness(1.1);
+}
+
+.filter-chip:has(input:checked) {
+  filter: grayscale(0);
+  opacity: 1;
+  background-color: var(--cat-color) !important;
+  border-color: var(--cat-color) !important;
+  color: #fff !important;
+}
+
+/* ---------------------------------------------------------------
+   Release note rows: per-category --cat-color defaults
+   These are overridden when the caller sets --cat-color inline.
+--------------------------------------------------------------- */
+
+.issue-row[data-category="new-feature"]     { --cat-color: var(--rn-color-new-feature,     #16a34a); }
+.issue-row[data-category="enhancement"]     { --cat-color: var(--rn-color-enhancement,     #2563eb); }
+.issue-row[data-category="fix"]             { --cat-color: var(--rn-color-fix,             #d97706); }
+.issue-row[data-category="security"]        { --cat-color: var(--rn-color-security,        #566f98); }
+.issue-row[data-category="deprecated"]      { --cat-color: var(--rn-color-deprecated,      #ffcc48); }
+.issue-row[data-category="breaking-change"] { --cat-color: var(--rn-color-breaking-change, #aaaa33); }
+.issue-row[data-category="known-issue"]     { --cat-color: var(--rn-color-known-issue,     #bb4448); }
+.issue-row[data-category="internal"]        { --cat-color: var(--rn-color-internal,        #71717a); }
+
+/* ---------------------------------------------------------------
+   Release note rows
+   Note: per-category show/hide rules are generated dynamically
+   by ReleaseNotes.astro based on the configured categories.
+--------------------------------------------------------------- */
+
+.issue-row {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+  border-radius: 6px;
+  transition: border-color 0.2s;
+  padding: 6px 8px;
+  border: 2px solid transparent;
+  scroll-margin-top: var(--release-notes-scroll-margin, 5rem);
+}
+
+@media (min-width: 768px) {
+  .issue-row {
+    margin-bottom: 1rem;
+  }
+}
+
+.issue-row:target {
+  border-color: rgba(148, 163, 184, 0.5);
+}
+
+.issue-badge {
+  width: 7rem;
+  padding: 4px 8px;
+  flex-shrink: 0;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 2px;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.15s ease-out, color 0.15s ease-out;
+  transform-origin: left center;
+  background-color: color-mix(in srgb, var(--cat-color) 13%, transparent);
+  color: var(--cat-color);
+  border: 1px solid color-mix(in srgb, var(--cat-color) 27%, transparent);
+}
+
+.issue-badge:hover {
+  transform: scale(1.05);
+  color: var(--release-notes-link-hover-color, #9a3412);
+  text-decoration: none;
+}
+.issue-badge:active { transform: scale(0.95); }
+.dark .issue-badge:hover {
+  color: var(--release-notes-link-hover-color-dark, #fed7aa);
+}
+
+.issue-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.rni-body {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.rni-meta {
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0;
+}
+
+.rni-thanks {
+  font-style: italic;
+  color: #475569;
+}
+
+.dark .rni-thanks { color: #94a3b8; }
+
+.github-link {
+  flex-shrink: 0;
+  font-size: 0.875rem;
+  text-decoration: none;
+  color: var(--release-notes-link-color, #4338ca);
+  transition: color 0.15s;
+}
+
+.github-link:hover {
+  color: var(--release-notes-link-hover-color, #9a3412);
+  text-decoration: none;
+}
+
+.dark .github-link {
+  color: var(--release-notes-link-color-dark, #818cf8);
+}
+
+.dark .github-link:hover {
+  color: var(--release-notes-link-hover-color-dark, #fed7aa);
+}
+
+/* ---------------------------------------------------------------
+   Version articles
+--------------------------------------------------------------- */
+
+.version {
+  scroll-margin-top: var(--release-notes-scroll-margin, 5rem);
+}
+
+.version-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.dark .version-header { border-bottom-color: #1e293b; }
+
+.version-date {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+/* ---------------------------------------------------------------
+   Version anchor links (# permalink)
+--------------------------------------------------------------- */
+
+.release-note .anchor-link {
+  opacity: 0;
+  text-decoration: none;
+  border: none;
+  margin-left: 0.5rem;
+  color: inherit;
+  transition: opacity 0.15s ease;
+}
+
+.release-note:hover .anchor-link,
+.release-note .anchor-link:focus-visible {
+  opacity: 1;
+}

@@ -1,0 +1,163 @@
+---
+import ThemeSelector from './ThemeSelector.astro';
+
+interface NavItem { name: string; href: string; }
+interface NavDropdown { label: string; items: NavItem[]; }
+
+export interface Props {
+  logoHref?: string;
+  logoAriaLabel?: string;
+  sectionTitle?: string;
+  sectionTitleHref?: string;
+  dropdowns?: NavDropdown[];
+  showThemeSelector?: boolean;
+  showSearch?: boolean;
+  loginHref?: string;
+  loginLabel?: string;
+  ctaHref?: string;
+  ctaLabel?: string;
+  breadcrumbs?: { title: string; href: string }[];
+}
+
+const {
+  logoHref = '/',
+  logoAriaLabel = 'Home',
+  sectionTitle,
+  sectionTitleHref = '/',
+  dropdowns = [],
+  showThemeSelector = true,
+  showSearch = false,
+  loginHref,
+  loginLabel = 'Log In',
+  ctaHref,
+  ctaLabel = 'Get a demo',
+  breadcrumbs = [],
+} = Astro.props as Props;
+
+const activeDropdowns = dropdowns.filter(d => d.items.length > 0);
+---
+
+<div id="main-header" class="nav-header" style="background:#0f172a">
+
+  <!-- Desktop bar (lg and above) -->
+  <div class="nav-desktop">
+
+    <div class="nav-brand">
+      <a href={logoHref} class="nav-logo-link" aria-label={logoAriaLabel}>
+        <slot name="logo" />
+      </a>
+      {sectionTitle && (
+        <>
+          <span class="nav-brand-sep" aria-hidden="true">/</span>
+          <a href={sectionTitleHref} class="nav-brand-title">{sectionTitle}</a>
+        </>
+      )}
+    </div>
+
+    {activeDropdowns.length > 0 && (
+      <nav id="nav-header-nav" class="nav-dropdowns" aria-label="Site navigation">
+        {activeDropdowns.map(menu => (
+          <details class="nav-dropdown-root">
+            <summary class="nav-dropdown-summary">{menu.label}</summary>
+            <div class="nav-dropdown-panel">
+              <ul class="nav-dropdown-list">
+                {menu.items.map(item => (
+                  <li class="nav-dropdown-item">
+                    <a href={item.href} class="nav-dropdown-link">{item.name}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </details>
+        ))}
+      </nav>
+    )}
+
+    <div class="nav-actions">
+      <slot name="extra-actions" />
+      {showSearch && (
+        <button class="nav-icon-btn nav-search-btn" aria-label="Search" data-widget="search-button">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true">
+            <path fill-rule="evenodd" d="M10.5 3.75a6.75 6.75 0 100 13.5 6.75 6.75 0 000-13.5zM2.25 10.5a8.25 8.25 0 1114.59 5.28l4.69 4.69a.75.75 0 11-1.06 1.06l-4.69-4.69A8.25 8.25 0 012.25 10.5z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      )}
+      {showThemeSelector && <ThemeSelector />}
+      {loginHref && (
+        <a href={loginHref} class="nav-login-link">{loginLabel}</a>
+      )}
+      {ctaHref && (
+        <a href={ctaHref} class="nav-cta-btn">{ctaLabel}</a>
+      )}
+    </div>
+
+  </div>
+
+  <!-- Mobile bar (below lg) -->
+  <div class="nav-mobile">
+
+    <slot name="sidebar-toggle" />
+
+    {activeDropdowns.length > 0 && (
+      <div class="nav-mobile-dropdowns">
+        {activeDropdowns.map(menu => (
+          <details class="nav-mobile-dropdown-root nav-dropdown-root">
+            <summary class="nav-mobile-dropdown-summary">{menu.label}</summary>
+            <div class="nav-dropdown-panel nav-dropdown-panel--left">
+              <ul class="nav-dropdown-list">
+                {menu.items.map(item => (
+                  <li class="nav-dropdown-item">
+                    <a href={item.href} class="nav-dropdown-link">{item.name}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </details>
+        ))}
+      </div>
+    )}
+
+    {breadcrumbs.length > 0 && (
+      <div class="nav-breadcrumbs">
+        <nav aria-label="Breadcrumb">
+          <ul class="nav-breadcrumb-list">
+            {breadcrumbs.map((crumb, idx) => (
+              <>
+                <li class="nav-breadcrumb-item">
+                  <a href={crumb.href}>{crumb.title}</a>
+                </li>
+                {idx < breadcrumbs.length - 1 && (
+                  <span class="nav-breadcrumb-sep" aria-hidden="true">/</span>
+                )}
+              </>
+            ))}
+          </ul>
+        </nav>
+      </div>
+    )}
+
+    <div class="nav-mobile-actions">
+      {showSearch && (
+        <button class="nav-icon-btn nav-search-btn" aria-label="Search" data-widget="search-button">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true">
+            <path fill-rule="evenodd" d="M10.5 3.75a6.75 6.75 0 100 13.5 6.75 6.75 0 000-13.5zM2.25 10.5a8.25 8.25 0 1114.59 5.28l4.69 4.69a.75.75 0 11-1.06 1.06l-4.69-4.69A8.25 8.25 0 012.25 10.5z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      )}
+      {showThemeSelector && <ThemeSelector />}
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  document.addEventListener('click', (event) => {
+    const header = document.getElementById('main-header');
+    if (!header) return;
+    const clicked = (event.target as Element).closest('details');
+    header.querySelectorAll('details[open]').forEach(d => {
+      if (d !== clicked) d.removeAttribute('open');
+    });
+  });
+</script>

@@ -1,0 +1,37 @@
+---
+import { Marked } from "marked";
+
+const { node } = Astro.props;
+const childNodes = node.sortedChildren || [];
+
+const remark = new Marked();
+const htmlTitle = remark.parseInline(node.title);
+const isAnc = node.isActive && !node.isCurrentPage;
+---
+
+{childNodes.length > 0 ? (
+  <details open={node.isOpen || undefined}>
+    <summary data-a={isAnc || undefined}>
+      {node.href ? (
+        <a
+          href={`${node.href}/`}
+          aria-current={node.isCurrentPage ? "page" : undefined}
+          set:html={htmlTitle}
+        ></a>
+      ) : (
+        <span set:html={htmlTitle}></span>
+      )}
+      <i></i>
+    </summary>
+    <div>
+      {childNodes.map((child: any) => <Astro.self node={child} />)}
+    </div>
+  </details>
+) : (
+  <a
+    href={node.href}
+    aria-current={node.isCurrentPage ? "page" : undefined}
+    data-a={isAnc || undefined}
+    set:html={htmlTitle}
+  ></a>
+)}

@@ -1,0 +1,186 @@
+/*
+  astro-better-code-blocks/style.css
+
+  Import this file in your project (e.g. in a root layout) to enable
+  all code block enhancements. This file has no external dependencies --
+  no Tailwind, no framework. Dark mode uses @media (prefers-color-scheme: dark).
+
+  If your project uses a .dark class instead (e.g. Tailwind's darkMode: 'class'),
+  add overrides in your own stylesheet using .dark as the selector prefix.
+*/
+
+/* ---------------------------------------------------------------
+   Shell session prompts
+   Elements marked data-no-copy are excluded from the copy button
+   and from manual text selection (user-select: none).
+   The rehypeCodeBlocks plugin marks shell-symbol.important tokens
+   with data-no-copy automatically for shell-session blocks.
+--------------------------------------------------------------- */
+[data-no-copy] {
+  user-select: none;
+}
+
+/* shell-symbol.important: the $ / # prompt character in shell-session blocks */
+.token.shell-symbol.important {
+  user-select: none;
+}
+
+/* ---------------------------------------------------------------
+   Diff overlay
+   Activated when the 'diff' keyword appears in the code fence meta.
+   Works on any language.
+--------------------------------------------------------------- */
+pre[data-has-line-meta] code .line.diff-inserted {
+  background-color: rgba(63, 185, 80, 0.15);
+}
+pre[data-has-line-meta] code .line.diff-deleted {
+  background-color: rgba(248, 81, 73, 0.15);
+}
+
+/* ---------------------------------------------------------------
+   Line-level features ({highlights} and [collapses])
+--------------------------------------------------------------- */
+
+/* inline-block so per-line backgrounds extend past the visible viewport */
+pre[data-has-line-meta] code {
+  display: inline-block;
+  min-width: 100%;
+}
+pre[data-has-line-meta] code .line {
+  display: block;
+}
+
+/* highlighted lines: warm yellow tint + left accent bar */
+pre[data-has-line-meta] code .line-highlighted {
+  background-color: rgba(255, 215, 0, 0.18);
+  box-shadow: inset 3px 0 0 0 rgba(255, 195, 0, 0.9);
+  /* negative margin + equal padding keeps text alignment while extending the
+     background color to the block's left/right edges */
+  margin-left: -1rem;
+  padding-left: 1rem;
+  margin-right: -1rem;
+  padding-right: 1rem;
+}
+@media (prefers-color-scheme: dark) {
+  pre[data-has-line-meta] code .line-highlighted {
+    background-color: rgba(255, 230, 0, 0.08);
+    box-shadow: inset 3px 0 0 0 rgba(255, 210, 0, 0.6);
+  }
+}
+
+/* collapsed lines */
+pre[data-has-line-meta] code .line-collapsed { display: none; }
+pre[data-has-line-meta] code .line-collapsed.expanded { display: block; }
+
+/* the "N hidden lines" toggle row */
+pre[data-has-line-meta] code .line-collapse-toggle {
+  display: block;
+  color: #58a6ff;
+  cursor: pointer;
+  user-select: none;
+  font-style: italic;
+  opacity: 0.75;
+  padding: 0.25em 0 0.2em;
+  text-align: center;
+  border-top: 1px dashed rgba(88, 166, 255, 0.4);
+  border-bottom: 1px dashed rgba(88, 166, 255, 0.4);
+}
+pre[data-has-line-meta] code .line-collapse-toggle:hover { opacity: 1; }
+pre[data-has-line-meta] code .line-collapse-toggle::before {
+  content: "▶";
+  display: inline-block;
+  margin-right: 0.4em;
+  transition: transform 0.2s ease;
+}
+/* faint preview of the first hidden line */
+pre[data-has-line-meta] code .line-collapse-toggle::after {
+  content: attr(data-preview);
+  display: block;
+  text-align: left;
+  font-style: normal;
+  color: #c9d1d9;
+  opacity: 0.45;
+  overflow: hidden;
+  white-space: pre;
+  text-overflow: ellipsis;
+  padding-top: 0.2em;
+  pointer-events: none;
+}
+pre[data-has-line-meta] code .line-collapse-toggle.expanded::before {
+  transform: rotate(90deg);
+}
+pre[data-has-line-meta] code .line-collapse-toggle.expanded {
+  font-style: normal;
+  border-bottom: none;
+}
+pre[data-has-line-meta] code .line-collapse-toggle.expanded::after { display: none; }
+/* bottom dashed border on the last visible expanded line */
+pre[data-has-line-meta] code .line-collapsed.expanded:not(:has(~ .line-collapsed.expanded)) {
+  border-bottom: 1px dashed rgba(88, 166, 255, 0.4);
+  padding-bottom: 0.25em;
+}
+
+/* ---------------------------------------------------------------
+   Code title (figure/figcaption)
+   Rendered when title="..." appears in the code fence meta.
+--------------------------------------------------------------- */
+.code-figure {
+  margin-top: 1.5rem;
+  margin-bottom: 0;
+}
+
+.code-figure .code-title {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0.25rem 0.5rem 0;
+  border-radius: 0.375rem 0.375rem 0 0;
+  border: 1px solid #334155;
+  background-color: #1e1b4b;
+  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  color: #e2e8f0;
+  font-style: normal;
+}
+
+/* remove top margin and round only the bottom corners when a title is present above */
+.code-figure > .ccb-wrapper > pre[class*="language-"],
+.code-figure > pre[class*="language-"] {
+  margin-top: 0 !important;
+  border-radius: 0 0 0.375rem 0.375rem;
+  border: 1px solid #1e1b4b;
+  border-top: none;
+}
+
+/* ---------------------------------------------------------------
+   Copy button
+--------------------------------------------------------------- */
+.ccb-wrapper {
+  position: relative;
+}
+
+.ccb-btn {
+  position: absolute;
+  top: 0.375rem;
+  right: 0.375rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+  padding: 0.375rem;
+  font-size: 0.875rem;
+  line-height: 1;
+  border-radius: 0.25rem;
+  color: rgba(255, 255, 255, 0.5);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.ccb-wrapper:hover .ccb-btn,
+.ccb-wrapper.ccb-active .ccb-btn {
+  opacity: 1;
+}
+
+.ccb-btn:hover {
+  background-color: #4338ca;
+}

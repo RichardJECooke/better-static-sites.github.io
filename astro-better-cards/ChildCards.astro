@@ -1,0 +1,276 @@
+---
+import { getCollection } from 'astro:content';
+import { Marked } from 'marked';
+import Card from './Card.astro';
+
+interface Props {
+  collection?: string;
+  folder?: string;
+  depth?: 1 | 2 | 3 | 4;
+  columns?: 1 | 2 | 3 | 4;
+  variant?: 'full' | 'compact' | 'quickstart';
+  basePath?: string;
+}
+
+const { collection = 'docs', folder, variant = 'full' } = Astro.props;
+const basePath = Astro.props.basePath !== undefined ? Astro.props.basePath : `/${collection}`;
+// coerce so depth={2} and depth="2" both work
+const depth = Number(Astro.props.depth ?? 1) as 1 | 2 | 3 | 4;
+const columns = Number(Astro.props.columns ?? 2) as 1 | 2 | 3 | 4;
+
+const pages = await getCollection(collection as any);
+
+let prefix: string;
+if (folder !== undefined) {
+  if (folder.startsWith('/')) {
+    const noSlash = folder.replace(/^\/+/, '');
+    prefix = noSlash.startsWith(`${collection}/`) ? noSlash.slice(collection.length + 1) : noSlash;
+  } else if (folder.startsWith('./') || folder.startsWith('../')) {
+    const pathname = Astro.url.pathname.replace(/^\/+|\/+$/g, '').replace(/\.html$/, '');
+    const pagePrefix = pathname.startsWith(`${collection}/`) ? pathname.slice(collection.length + 1) : pathname;
+    const pageFolder = pagePrefix.includes('/') ? pagePrefix.replace(/\/[^/]+$/, '') : '';
+    const parts = pageFolder ? pageFolder.split('/') : [];
+    for (const seg of folder.split('/')) {
+      if (seg === '..') parts.pop();
+      else if (seg !== '.' && seg !== '') parts.push(seg);
+    }
+    prefix = parts.join('/');
+  } else {
+    prefix = folder;
+  }
+} else {
+  const pathname = Astro.url.pathname.replace(/^\/+|\/+$/g, '').replace(/\.html$/, '');
+  if (pathname === '' || pathname === collection) {
+    prefix = '';
+  } else {
+    prefix = pathname.startsWith(`${collection}/`) ? pathname.slice(collection.length + 1) : pathname;
+  }
+}
+prefix = prefix.replace(/^\/+|\/+$/g, '');
+
+const remark = new Marked();
+const md = (s: string) => remark.parseInline(s) as Promise<string>;
+
+const valid = (pages as any[]).filter(p => !p.data.excludeFromNav && p.data.route !== false);
+
+function stripExt(id: string): string {
+  return id.replace(/\.(md|mdx)$/i, '');
+}
+
+// returns path segments relative to prefix, or null if not under prefix
+function getRem(id: string): string[] | null {
+  const cid = stripExt(id);
+  const rem = prefix ? (cid.startsWith(`${prefix}/`) ? cid.slice(prefix.length + 1) : null) : cid;
+  if (!rem) return null;
+  return rem.split('/');
+}
+
+function isAtDepth(id: string, d: number): boolean {
+  const parts = getRem(id);
+  if (!parts) return false;
+  return parts.length === d && parts[parts.length - 1] !== 'index';
+}
+
+function findIndexPage(relPath: string) {
+  return (pages as any[]).find(p => {
+    const cid = stripExt(p.id);
+    const target = prefix ? `${prefix}/${relPath}` : relPath;
+    return cid === target || cid === `${target}/index`;
+  });
+}
+
+async function getGroupTitle(relPath: string, fallback: string): Promise<string> {
+  const entry = findIndexPage(relPath);
+  return entry
+    ? (await md(entry.data.title) as string)
+    : fallback.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+}
+
+function getGroupOrder(relPath: string): number {
+  return findIndexPage(relPath)?.data.order ?? 1000;
+}
+
+type NavItem = {
+  href: string;
+  title: string;
+  description?: string;
+  icon?: string | null;
+  darkIcon?: string;
+  cardImage?: string;
+  version?: string;
+  badges?: string[];
+};
+
+type Group = {
+  key: string;
+  title: string;
+  order: number;
+  items: NavItem[];
+  subgroups: Group[];
+};
+
+const colClasses: Record<number, string> = {
+  1: 'grid-cols-1',
+  2: 'grid-cols-1 lg:grid-cols-2',
+  3: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+  4: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4',
+};
+const colClass = colClasses[columns] ?? colClasses[2];
+
+async function pageToItem(p: any): Promise<NavItem> {
+  return {
+    href: `${basePath}/${stripExt(p.id).replace(/\/index$/, '')}`,
+    title: await md(p.data.title) as string,
+    description: p.data.description,
+    icon: p.data.icon ?? null,
+    darkIcon: p.data.darkIcon,
+    cardImage: p.data.cardImage,
+    version: p.data.version,
+    badges: p.data.badges,
+  };
+}
+
+let items: NavItem[] = [];
+let groups: Group[] = [];
+
+if (depth === 1) {
+  const children = valid.filter(p => isAtDepth(p.id, 1));
+  children.sort((a, b) => (a.data.order ?? 1000) - (b.data.order ?? 1000) || a.data.title.localeCompare(b.data.title));
+  items = await Promise.all(children.map(pageToItem));
+} else {
+  const pagesAtDepth = valid.filter(p => isAtDepth(p.id, depth));
+
+  const topMap = new Map<string, any[]>();
+  for (const p of pagesAtDepth) {
+    const topKey = getRem(p.id)![0];
+    if (!topMap.has(topKey)) topMap.set(topKey, []);
+    topMap.get(topKey)!.push(p);
+  }
+
+  groups = await Promise.all([...topMap.keys()].map(async topKey => {
+    const topTitle = await getGroupTitle(topKey, topKey);
+    const topOrder = getGroupOrder(topKey);
+    const topPages = topMap.get(topKey)!;
+
+    if (depth === 2) {
+      topPages.sort((a, b) => (a.data.order ?? 1000) - (b.data.order ?? 1000) || a.data.title.localeCompare(b.data.title));
+      return { key: topKey, title: topTitle, order: topOrder, items: await Promise.all(topPages.map(pageToItem)), subgroups: [] };
+    }
+
+    const midMap = new Map<string, any[]>();
+    for (const p of topPages) {
+      const midKey = getRem(p.id)![1];
+      if (!midMap.has(midKey)) midMap.set(midKey, []);
+      midMap.get(midKey)!.push(p);
+    }
+
+    const subgroups: Group[] = await Promise.all([...midMap.keys()].map(async midKey => {
+      const midRelPath = `${topKey}/${midKey}`;
+      const midTitle = await getGroupTitle(midRelPath, midKey);
+      const midOrder = getGroupOrder(midRelPath);
+      const midPages = midMap.get(midKey)!;
+
+      if (depth === 3) {
+        midPages.sort((a, b) => (a.data.order ?? 1000) - (b.data.order ?? 1000) || a.data.title.localeCompare(b.data.title));
+        return { key: midKey, title: midTitle, order: midOrder, items: await Promise.all(midPages.map(pageToItem)), subgroups: [] };
+      }
+
+      // depth === 4
+      const botMap = new Map<string, any[]>();
+      for (const p of midPages) {
+        const botKey = getRem(p.id)![2];
+        if (!botMap.has(botKey)) botMap.set(botKey, []);
+        botMap.get(botKey)!.push(p);
+      }
+
+      const subsubgroups: Group[] = await Promise.all([...botMap.keys()].map(async botKey => {
+        const botRelPath = `${topKey}/${midKey}/${botKey}`;
+        const botTitle = await getGroupTitle(botRelPath, botKey);
+        const botOrder = getGroupOrder(botRelPath);
+        const botPages = botMap.get(botKey)!;
+        botPages.sort((a, b) => (a.data.order ?? 1000) - (b.data.order ?? 1000) || a.data.title.localeCompare(b.data.title));
+        return { key: botKey, title: botTitle, order: botOrder, items: await Promise.all(botPages.map(pageToItem)), subgroups: [] };
+      }));
+      subsubgroups.sort((a, b) => a.order - b.order);
+
+      return { key: midKey, title: midTitle, order: midOrder, items: [], subgroups: subsubgroups };
+    }));
+
+    subgroups.sort((a, b) => a.order - b.order);
+    return { key: topKey, title: topTitle, order: topOrder, items: [], subgroups };
+  }));
+
+  groups.sort((a, b) => a.order - b.order);
+}
+---
+
+{depth === 1 ? (
+  // xmlns prevents Astro's MDX renderer from treating children as markdown
+  <div class={`gap-6 mt-6 mb-6 grid ${colClass} not-prose`} xmlns="http://www.w3.org/1999/xhtml">
+    {items.map(item => (
+      <Card href={item.href} title={item.title} description={item.description}
+        icon={item.icon} darkIcon={item.darkIcon} cardImage={item.cardImage}
+        version={item.version} badges={item.badges} variant={variant} />
+    ))}
+  </div>
+) : depth === 2 ? (
+  <div class="mb-6">
+    {groups.map(group => (
+      <Fragment>
+        <h2 class="mt-10 mb-2 text-xl font-semibold not-prose" set:html={group.title} />
+        <div class={`gap-6 grid ${colClass} not-prose`} xmlns="http://www.w3.org/1999/xhtml">
+          {group.items.map(item => (
+            <Card href={item.href} title={item.title} description={item.description}
+              icon={item.icon} darkIcon={item.darkIcon} cardImage={item.cardImage}
+              version={item.version} badges={item.badges} variant={variant} />
+          ))}
+        </div>
+      </Fragment>
+    ))}
+  </div>
+) : depth === 3 ? (
+  <div class="mb-6">
+    {groups.map(group => (
+      <Fragment>
+        <h2 class="mt-10 mb-2 text-xl font-semibold not-prose" set:html={group.title} />
+        {group.subgroups.map(sub => (
+          <Fragment>
+            <h3 class="mt-6 mb-2 text-lg font-semibold not-prose" set:html={sub.title} />
+            <div class={`gap-6 grid ${colClass} not-prose`} xmlns="http://www.w3.org/1999/xhtml">
+              {sub.items.map(item => (
+                <Card href={item.href} title={item.title} description={item.description}
+                  icon={item.icon} darkIcon={item.darkIcon} cardImage={item.cardImage}
+                  version={item.version} badges={item.badges} variant={variant} />
+              ))}
+            </div>
+          </Fragment>
+        ))}
+      </Fragment>
+    ))}
+  </div>
+) : (
+  <div class="mb-6">
+    {groups.map(group => (
+      <Fragment>
+        <h2 class="mt-10 mb-2 text-xl font-semibold not-prose" set:html={group.title} />
+        {group.subgroups.map(sub => (
+          <Fragment>
+            <h3 class="mt-6 mb-2 text-lg font-semibold not-prose" set:html={sub.title} />
+            {sub.subgroups.map(subsub => (
+              <Fragment>
+                <h4 class="mt-4 mb-2 text-base font-semibold not-prose" set:html={subsub.title} />
+                <div class={`gap-6 grid ${colClass} not-prose`} xmlns="http://www.w3.org/1999/xhtml">
+                  {subsub.items.map(item => (
+                    <Card href={item.href} title={item.title} description={item.description}
+                      icon={item.icon} darkIcon={item.darkIcon} cardImage={item.cardImage}
+                      version={item.version} badges={item.badges} variant={variant} />
+                  ))}
+                </div>
+              </Fragment>
+            ))}
+          </Fragment>
+        ))}
+      </Fragment>
+    ))}
+  </div>
+)}
