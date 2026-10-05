@@ -10,7 +10,7 @@ import { loadConfig } from 'astro-better-declarative-screenshots';
 import { discoverScreenshots } from '../src/discover.mjs';
 import { startDocker, stopDocker } from '../src/docker.mjs';
 import { capturePage, createBrowserContext } from '../src/capture.mjs';
-import { addChrome } from '../src/chrome.mjs';
+import { applyChrome } from '../src/chrome.mjs';
 import { diffScreenshot } from '../src/diff.mjs';
 
 const projectRoot = process.cwd();
@@ -92,16 +92,7 @@ async function main() {
         context,
       });
 
-      let newBuffer = rawBuffer;
-      if (config.chrome.style !== 'none') {
-        newBuffer = await addChrome(rawBuffer, {
-          url: fullUrl,
-          dark: config.chrome.dark,
-          showUrl: config.chrome.showUrl,
-          shadowBlur: config.chrome.shadowBlur,
-          shadowPadding: config.chrome.shadowPadding,
-        });
-      }
+      const newBuffer = await applyChrome(rawBuffer, config, fullUrl);
 
       const result = await diffScreenshot(referencePath, newBuffer, {
         threshold: args.pixelThreshold ?? 0.1,
@@ -177,6 +168,7 @@ function parseArgs(argv) {
     if (argv[i].startsWith('--filter=')) args.filter = argv[i].slice(9);
     if (argv[i].startsWith('--diff-dir=')) args.diffDir = argv[i].slice(11);
     if (argv[i] === '--diff-dir' && argv[i + 1]) args.diffDir = argv[++i];
+    if (argv[i] === '--threshold' && argv[i + 1]) args.thresholdRatio = parseFloat(argv[++i]);
     if (argv[i].startsWith('--threshold=')) args.thresholdRatio = parseFloat(argv[i].slice(12));
   }
   return args;

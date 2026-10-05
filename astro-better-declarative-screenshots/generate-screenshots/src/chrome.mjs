@@ -15,6 +15,26 @@ const URL_BAR_X = 100;
 const URL_BAR_X_MARGIN_R = 20;
 const URL_BAR_RADIUS = 5;
 
+/**
+ * Applies the window chrome the config asks for, or returns the buffer untouched.
+ *
+ * Both CLIs must decide this identically. With renderIn: 'css' the Screenshot
+ * component already draws the frame inside the page, so compositing here would add a
+ * second frame and change the image's dimensions. check-screenshots used to miss that
+ * condition and reported every image as 100% changed against a correct reference.
+ */
+export async function applyChrome(screenshotBuffer, config, url) {
+  const { chrome } = config;
+  if (chrome.style === 'none' || chrome.renderIn === 'css') return screenshotBuffer;
+  return addChrome(screenshotBuffer, {
+    url,
+    dark: chrome.theme === 'dark',
+    showUrl: chrome.showUrl,
+    shadowBlur: chrome.shadowBlur,
+    shadowPadding: chrome.shadowPadding,
+  });
+}
+
 export async function addChrome(screenshotBuffer, opts = {}) {
   const {
     url = '',

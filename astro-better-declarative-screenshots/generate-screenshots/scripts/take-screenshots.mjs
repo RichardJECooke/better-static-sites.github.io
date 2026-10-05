@@ -9,7 +9,7 @@ import { loadConfig } from 'astro-better-declarative-screenshots';
 import { discoverScreenshots } from '../src/discover.mjs';
 import { startDocker, stopDocker } from '../src/docker.mjs';
 import { capturePage, createBrowserContext } from '../src/capture.mjs';
-import { addChrome } from '../src/chrome.mjs';
+import { applyChrome } from '../src/chrome.mjs';
 import { generatePlaceholder } from '../src/placeholder.mjs';
 
 const projectRoot = process.cwd();
@@ -91,17 +91,7 @@ async function main() {
         context,
       });
 
-      let finalBuffer = rawBuffer;
-
-      if (config.chrome.style !== 'none' && config.chrome.renderIn !== 'css') {
-        finalBuffer = await addChrome(rawBuffer, {
-          url: fullUrl,
-          dark: config.chrome.theme === 'dark',
-          showUrl: config.chrome.showUrl,
-          shadowBlur: config.chrome.shadowBlur,
-          shadowPadding: config.chrome.shadowPadding,
-        });
-      }
+      const finalBuffer = await applyChrome(rawBuffer, config, fullUrl);
 
       writeFileSync(outputPath, finalBuffer);
       process.stdout.write('done\n');
