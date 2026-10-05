@@ -93,7 +93,7 @@ async function main() {
       });
 
       let newBuffer = rawBuffer;
-      if (config.chrome.style !== 'none') {
+      if (config.chrome.style !== 'none' && config.chrome.renderIn !== 'css') {
         newBuffer = await addChrome(rawBuffer, {
           url: fullUrl,
           dark: config.chrome.dark,
