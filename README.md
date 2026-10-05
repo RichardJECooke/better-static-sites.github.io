@@ -67,14 +67,23 @@ or Docker involved.
 
 ### Checking for drift
 
-`check-screenshots` does not rebuild. Run `npm run screenshots` first if `dist/` is stale.
+`scripts/refresh-screenshots.sh` regenerates every screenshot and compares it to the
+committed version pixel by pixel, so PNG encoding noise or a stray antialiased pixel does
+not read as a real change. Anything at least 98% identical is reverted to the committed
+file, leaving only meaningful changes in the working tree.
 
 ```shell-session
-npm run check-screenshots -- --threshold 0.002
+scripts/refresh-screenshots.sh                   # regenerate and compare
+scripts/refresh-screenshots.sh --compare-only    # compare what is already on disk
+scripts/refresh-screenshots.sh --threshold 0.005 # stricter tolerance
 ```
 
-A GitHub Action (`.github/workflows/update-screenshots.yml`) runs this automatically
-every Monday and opens a PR if any screenshots have changed.
+It exits 0 when nothing meaningful changed and 2 when there is something to review, and
+writes a diff image per failing comparison to `.screenshot-diffs/`. To compare two
+directories directly, call `scripts/compare-screenshots.mjs --help`.
+
+A GitHub Action (`.github/workflows/update-screenshots.yml`) runs the script every Monday
+and opens a PR only when a screenshot changes beyond the tolerance.
 
 ## Releasing
 

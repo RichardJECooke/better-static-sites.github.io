@@ -50,7 +50,11 @@ npm run check-screenshots -- --threshold 0.002 --diff-dir .screenshot-diffs
 ```
 
 Exits non-zero if any screenshot differs from the committed reference
-beyond the threshold. Used by the `update-screenshots` GitHub Action.
+beyond the threshold.
+
+The `update-screenshots` Action does not use this; it runs
+`scripts/refresh-screenshots.sh` from the repo root, which recaptures everything and
+reverts any image that is within tolerance.
 
 ## Regenerating a subset
 
