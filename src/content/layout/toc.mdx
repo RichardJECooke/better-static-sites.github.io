@@ -2,7 +2,7 @@
 title: Table of Contents
 description: Server-side table of contents with scroll spy and optional inline mobile accordion, injected at build time.
 order: 2
-version: "1.1.0"
+version: "1.2.0"
 badges: ["integration", "component"]
 ---
 
@@ -135,6 +135,9 @@ For each file, it finds the content area matching `articleSelector`, extracts he
 and injects the same TOC HTML into every `[data-server-toc]` element on the page. This
 means both the sidebar `<TOC>` and the inline `<InlineTOC>` receive identical content
 from a single pass.
+
+On sites with more than a few dozen pages, the pass runs in worker threads, one per CPU,
+so it adds little to the build even with thousands of pages.
 
 The scroll spy in `<TOC>` is scoped to `#toc-container`, so it only highlights items in
 the sidebar. It never interacts with the inline accordion.
