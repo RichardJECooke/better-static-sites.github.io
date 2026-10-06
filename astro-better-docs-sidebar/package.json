@@ -1,6 +1,6 @@
 {
   "name": "astro-better-docs-sidebar",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "keywords": [
     "astro",
     "sidebar",
@@ -23,12 +23,16 @@
     "./SidebarItem.astro": "./SidebarItem.astro"
   },
   "files": [
-    "*.astro"
+    "*.astro",
+    "tree.js"
   ],
   "dependencies": {
     "marked": "^17.0.0"
   },
   "peerDependencies": {
     "astro": ">=4.0.0"
+  },
+  "scripts": {
+    "test": "node --test test/"
   }
 }

@@ -1,15 +1,15 @@
 ---
 title: Code Snippets
-description: Remark/rehype plugins for enhanced code blocks with copy button, line highlighting, diff mode, collapsible sections, file titles, and shell session formatting.
+description: Remark/rehype and Sätteri plugins for enhanced code blocks with copy button, line highlighting, diff mode, collapsible sections, file titles, and shell session formatting.
 order: 1
-version: "0.1.5"
+version: "0.2.0"
 badges: ["integration"]
 ---
 
 import { Steps } from 'astro-better-steps';
 import PkgMeta from 'src/components/PkgMeta.astro';
 
-Remark and rehype plugins that enhance code blocks in Astro MDX files.
+Remark and rehype plugins, plus [Sätteri](https://satteri.bruits.org/) equivalents, that enhance code blocks in Astro MDX files.
 Adds a copy-to-clipboard button, syntax highlighting via Prism, and a
 meta string mini-language for titles, line highlights, collapsible sections,
 and diff overlays. Also formats shell session blocks with distinct prompt styling.
@@ -58,6 +58,38 @@ In your root layout or global stylesheet:
 ```
 
 </Steps>
+
+## Use with Sätteri
+
+[Sätteri](https://satteri.bruits.org/) parses and compiles Markdown and MDX in Rust, which makes builds of large sites much faster. The `astro-better-code-blocks/satteri` entry point exports Sätteri plugins that produce the same HTML as the unified ones:
+
+```shell-session
+npm install @astrojs/markdown-satteri
+```
+
+```ts title="astro.config.ts"
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+import { satteri } from '@astrojs/markdown-satteri';
+import { codeBlocks, shellSession } from 'astro-better-code-blocks/satteri';
+
+const processor = satteri({
+  mdastPlugins: [shellSession()],
+  hastPlugins: [codeBlocks()],
+});
+
+export default defineConfig({
+  markdown: { syntaxHighlight: false, processor },
+  integrations: [mdx({ syntaxHighlight: false, processor })],
+});
+```
+
+`shellSession` takes the same options as `remarkShellSession`, and `codeBlocks` takes the same options as `rehypeCodeBlocks`. The unified plugins stay at the package root, so existing configs keep working without changes.
+
+Sätteri itself differs from the unified pipeline in two ways that can change your output when you switch:
+
+- With smart punctuation on, Sätteri turns `--` into an en dash and `---` into an em dash. `remark-smartypants` turns `--` into an em dash.
+- Sätteri follows CommonMark when deciding whether a list is tight, so a few lists that micromark rendered as loose (`<li><p>`) render tight.
 
 ## Meta string features
 
@@ -229,6 +261,8 @@ $ git log --oneline -3
 ```
 
 ## Plugin options
+
+The Sätteri plugins `codeBlocks` and `shellSession` take the same options as their unified counterparts below.
 
 ### rehypeCodeBlocks
 
