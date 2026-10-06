@@ -4,7 +4,10 @@ services:
     working_dir: /app
     volumes:
       - ../dist:/app/dist:ro
-    command: sh -c "test -f /app/dist/index.html || { echo 'dist/ not built -- run npm run screenshots from the project root'; exit 1; }; mkdir -p /tmp/serve && ln -sf /app/dist /tmp/serve/docs && npx --yes serve /tmp/serve -l 4000 --no-clipboard"
+    # Serve dist at the root. It used to be symlinked under /docs, from when the site
+    # was built with base: '/docs'; with base: '/' the asset hrefs are root-relative,
+    # so under a prefix every page 404s or renders unstyled.
+    command: sh -c "test -f /app/dist/index.html || { echo 'dist/ not built -- run npm run screenshots from the project root'; exit 1; }; npx --yes serve /app/dist -l 4000 --no-clipboard"
     ports:
       - "4000:4000"
     healthcheck:

@@ -17,8 +17,8 @@
 @source "../../node_modules/astro-better-tabs/TabItem.astro";
 @source "../../node_modules/astro-better-cards/Card.astro";
 @source "../../node_modules/astro-better-cards/ChildCards.astro";
-@source "../../node_modules/astro-toc-smol/src/index.js";
-@source "../../node_modules/astro-toc-smol/src/InlineTOC.astro";
+@source "../../node_modules/astro-better-toc/src/index.js";
+@source "../../node_modules/astro-better-toc/src/InlineTOC.astro";
 
 :root {
   --bg: #ffffff;
@@ -223,7 +223,7 @@ body {
   font-weight: 600;
 }
 
-/* inline mobile TOC (astro-toc-smol InlineTOC) */
+/* inline mobile TOC (astro-better-toc InlineTOC) */
 .toc-inline {
   display: block;
   margin-bottom: 1.5rem;

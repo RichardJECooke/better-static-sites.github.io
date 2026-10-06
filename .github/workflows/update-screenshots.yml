@@ -1,9 +1,27 @@
+# Weekly screenshot refresh. Regenerates every screenshot and opens a PR only when one of
+# them meaningfully changed, judged by a pixel diff with a tolerance rather than by bytes.
+#
+# All logic lives in scripts/refresh-screenshots.sh, which runs the same way locally:
+#
+#   scripts/refresh-screenshots.sh                   # regenerate and compare
+#   scripts/refresh-screenshots.sh --compare-only    # compare what is already on disk
+#   scripts/refresh-screenshots.sh --threshold 0.005 # stricter tolerance
+#
+# It exits 0 when nothing meaningful changed and 2 when there is something to review, and
+# leaves diff images in .screenshot-diffs.
+
 name: Update screenshots
 
 on:
   schedule:
     - cron: '0 8 * * 1'  # every Monday at 08:00 UTC
   workflow_dispatch:
+    inputs:
+      threshold:
+        description: differing-pixel ratio that counts as a real change
+        required: false
+        default: '0.02'
+        type: string
 
 permissions:
   contents: write
@@ -14,9 +32,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -27,9 +45,6 @@ jobs:
       - name: Install site modules
         run: npm ci
 
-      - name: Build site
-        run: npm run build
-
       - name: Install screenshots CLI
         run: npm ci
         working-directory: ./screenshots
@@ -38,54 +53,50 @@ jobs:
         run: npx playwright install webkit --with-deps
         working-directory: ./screenshots
 
-      - name: Delete cached screenshots
-        run: rm -f public/img/screenshots/*.png
-
-      - name: Generate screenshots
-        run: npm run screenshots
-
-      - name: Check for changes
-        id: diff
+      - name: Regenerate and compare
+        id: refresh
         run: |
-          git add public/img/screenshots/
-          if git diff --cached --quiet; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-            git diff --cached --name-only > /tmp/changed-files.txt
-            echo "files=$(cat /tmp/changed-files.txt | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
-          fi
+          set +e
+          scripts/refresh-screenshots.sh --threshold "${{ inputs.threshold || '0.02' }}"
+          status=$?
+          set -e
+          if [ "$status" -eq 1 ] || [ "$status" -gt 2 ]; then exit 1; fi
+          echo "changed=$([ "$status" -eq 2 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - name: Upload diff images
+        if: steps.refresh.outputs.changed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshot-diffs
+          path: .screenshot-diffs/
+          if-no-files-found: ignore
 
       - name: Open PR with updated screenshots
-        if: steps.diff.outputs.changed == 'true'
+        if: steps.refresh.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CHANGED: ${{ steps.diff.outputs.files }}
         run: |
           BRANCH="screenshots/auto-update-$(date +%Y-%m-%d)"
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -b "$BRANCH"
+          git add public/img/screenshots/
           git commit -m "chore: update screenshots $(date +%Y-%m-%d)"
           git push origin "$BRANCH"
 
-          FILE_LIST=$(echo "$CHANGED" | tr ' ' '\n' | grep -v '^$' | sed 's|.*/||' | sed 's/^/- /' | head -20)
-
+          FILES=$(git diff --name-only HEAD~1 HEAD | sed 's|.*/||' | sed 's/^/- /')
           gh pr create \
             --title "chore: update screenshots $(date +%Y-%m-%d)" \
-            --body "$(cat <<'EOF'
-          Weekly automated screenshot refresh.
+            --body "Weekly screenshot refresh. Only images whose pixel diff exceeded the tolerance are included; anything within tolerance was reverted to the committed version.
 
-          ### Changed files
+          ### Changed
 
-          ${FILE_LIST}
+          ${FILES}
 
-          Review the diff to verify the UI changes are expected before merging.
-          EOF
-          )" \
+          Diff images are attached to this workflow run as the \`screenshot-diffs\` artifact." \
             --label "screenshots" \
             --base main
 
       - name: No changes
-        if: steps.diff.outputs.changed == 'false'
-        run: echo "All screenshots match -- no PR needed."
+        if: steps.refresh.outputs.changed == 'false'
+        run: echo "All screenshots within tolerance -- no PR needed."

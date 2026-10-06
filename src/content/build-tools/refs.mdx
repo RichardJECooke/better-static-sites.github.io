@@ -2,7 +2,7 @@
 title: Anchor References
 description: Sphinx-style named anchors that survive content moves.
 order: 4
-version: "0.1.0"
+version: "0.2.0"
 badges: ["integration", "component"]
 ---
 
@@ -98,6 +98,32 @@ option in the Setup section, showing how you can link anywhere in your content, 
 | Option | Type | Description |
 |--------|------|-------------|
 | `collections` | `{src, base}[]` | Content directories to scan for ref declarations |
+
+## Use with Sätteri
+
+When `markdown.processor` is a Sätteri processor, the integration adds its Sätteri plugin to that processor instead of building a unified one. The same setup works unchanged.
+
+To cover MDX as well, or to share one ref map across several processors, pass a `state` object to the integration and add the plugin yourself. The integration then only scans and reports:
+
+```ts title="astro.config.ts"
+import mdx from '@astrojs/mdx';
+import { satteri } from '@astrojs/markdown-satteri';
+import astroRefs from 'astro-better-refs';
+import { refs } from 'astro-better-refs/satteri';
+
+const state = { refMap: null, brokenRefs: [], duplicates: [] };
+const processor = satteri({ mdastPlugins: [refs({ state })] });
+
+export default defineConfig({
+  markdown: { processor },
+  integrations: [
+    mdx({ processor }),
+    astroRefs({ collections: [{ src: 'src/content/docs', base: '/docs' }], state }),
+  ],
+});
+```
+
+With unified, the same pattern uses `remarkAstroRef` from `astro-better-refs`.
 
 ## `Ref` component props
 

@@ -2,7 +2,7 @@
 title: Mermaid Diagram Renderer
 description: Server-side Mermaid diagram rendering to inline SVG at build time.
 order: 3
-version: "0.1.0"
+version: "0.2.0"
 badges: ["integration"]
 ---
 
@@ -44,6 +44,8 @@ export default defineConfig({
 | `titleFix` | `boolean` | `true` | Strip title from rendered SVG (prevents duplicate headings) |
 | `injectCSS` | `boolean` | `true` | Auto-inject default styles |
 | `securityLevel` | `string` | `'loose'` | Mermaid `securityLevel` setting |
+| `cache` | `boolean` | `true` | Cache rendered diagrams on disk between builds |
+| `cacheDir` | `string` | `'node_modules/.cache/astro-better-mermaid'` | Where cached diagrams live, relative to the working directory |
 
 ## Usage in MDX
 
@@ -88,3 +90,43 @@ export default defineConfig({
   },
 });
 ```
+
+## Caching
+
+Rendering a diagram is the slow part, so the plugin caches each rendered diagram on disk and reuses it on later builds. Entries are keyed by the Mermaid version, the theme and security level, and the diagram source, so editing a diagram or upgrading Mermaid renders it again. Diagrams that fail to render are never cached.
+
+Each diagram's SVG id comes from its position on the page and a hash of its source, so the same page builds to the same HTML every time. Earlier versions used a random id.
+
+Set `cache: false` to turn the disk cache off, or point `cacheDir` somewhere that persists between CI runs to share it.
+
+## Use with Sätteri
+
+When `markdown.processor` is a Sätteri processor, the integration adds its Sätteri plugins to that processor instead of registering remark plugins. Nothing else in the setup changes:
+
+```ts title="astro.config.ts"
+import mdx from '@astrojs/mdx';
+import { satteri } from '@astrojs/markdown-satteri';
+import mermaidSSR from 'astro-better-mermaid';
+
+const processor = satteri();
+
+export default defineConfig({
+  markdown: { processor },
+  integrations: [mdx({ processor }), mermaidSSR({ theme: 'neutral' })],
+});
+```
+
+Pass the same processor to `mdx()`, as above, so MDX files get the plugins too.
+
+To wire the plugins yourself, import them from `astro-better-mermaid/satteri`. They take the same options as the remark plugins:
+
+```ts
+import { mermaidTitle, mermaidSSR } from 'astro-better-mermaid/satteri';
+
+const processor = satteri({
+  // mermaidTitle first, as with mermaidTitleFix and remarkMermaidSSR
+  mdastPlugins: [mermaidTitle(), mermaidSSR({ theme: 'neutral' })],
+});
+```
+
+Without the integration, keep `svgdom` and `mermaid` in `vite.ssr.external` and import `astro-better-mermaid/styles.css` in your layout, as the integration would.

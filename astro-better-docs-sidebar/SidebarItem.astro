@@ -1,11 +1,10 @@
 ---
-import { Marked } from "marked";
+import { titleHtml } from "./tree.js";
 
 const { node } = Astro.props;
 const childNodes = node.sortedChildren || [];
 
-const remark = new Marked();
-const htmlTitle = remark.parseInline(node.title);
+const htmlTitle = node.htmlTitle ?? titleHtml(node.title);
 const isAnc = node.isActive && !node.isCurrentPage;
 ---
 
