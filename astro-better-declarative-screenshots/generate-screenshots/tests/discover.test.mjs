@@ -78,6 +78,30 @@ import Screenshot from 'astro-better-declarative-screenshots/Screenshot.astro';
     expect(specs[0].fullPage).toBe(true);
   });
 
+  it('extracts crop/cropPadding props', async () => {
+    write('src/content/docs/page.mdx', `
+<Screenshot url="/admin/tenant/add" crop="#tenant-form fieldset" cropPadding={8} />
+`);
+    const specs = await discoverScreenshots(tmpDir);
+    expect(specs[0].crop).toBe('#tenant-form fieldset');
+    expect(specs[0].cropPadding).toBe(8);
+  });
+
+  it('keeps parsing after a crop selector containing >', async () => {
+    write('src/content/docs/page.mdx', `
+<Screenshot url="/one" crop="form > fieldset" />
+<Screenshot url="/two">
+  <Highlight selector="#name" />
+</Screenshot>
+`);
+    const specs = await discoverScreenshots(tmpDir);
+    expect(specs).toHaveLength(2);
+    expect(specs[0].crop).toBe('form > fieldset');
+    expect(specs[0].highlights).toHaveLength(0);
+    expect(specs[1].url).toBe('/two');
+    expect(specs[1].highlights[0].selector).toBe('#name');
+  });
+
   it('handles same URL with different highlights -- no collision', async () => {
     write('src/content/docs/page.mdx', `
 <Screenshot url="/admin/group">

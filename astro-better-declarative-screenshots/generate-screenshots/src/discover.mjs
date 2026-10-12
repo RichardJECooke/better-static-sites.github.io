@@ -23,6 +23,8 @@ import { deriveName } from 'astro-better-declarative-screenshots';
  * @property {number|undefined} width
  * @property {number|undefined} height
  * @property {boolean} fullPage
+ * @property {string|undefined} crop - selector for the part of the page to crop to
+ * @property {number|undefined} cropPadding - pixels of space kept around the cropped area
  * @property {string} sourceFile - absolute path of the file containing this Screenshot
  */
 
@@ -65,7 +67,9 @@ function parseFile(filePath, used) {
   // find all <Screenshot ...> blocks, including multiline
   // we look for <Screenshot, then collect attributes until we see > or />
   // then look for Highlight children until </Screenshot>
-  const screenshotRe = /<Screenshot\b([\s\S]*?)(?:\/>|>([\s\S]*?)<\/Screenshot>)/g;
+  // quoted and {...} attribute values are skipped whole, so a selector like "form > fieldset"
+  // doesn't end the tag early
+  const screenshotRe = /<Screenshot\b((?:"[^"]*"|'[^']*'|\{[^}]*\}|[^>"'{])*?)(?:\/>|>([\s\S]*?)<\/Screenshot>)/g;
   let match;
 
   while ((match = screenshotRe.exec(source)) !== null) {
@@ -79,6 +83,8 @@ function parseFile(filePath, used) {
     const widthStr = extractProp(attrBlock, 'width');
     const heightStr = extractProp(attrBlock, 'height');
     const fullPageStr = extractProp(attrBlock, 'fullPage');
+    const crop = extractProp(attrBlock, 'crop');
+    const cropPaddingStr = extractProp(attrBlock, 'cropPadding');
 
     const highlights = parseHighlightChildren(childBlock);
     const name = id ?? deriveName(url, highlights, used);
@@ -90,6 +96,8 @@ function parseFile(filePath, used) {
       width:    widthStr  ? parseInt(widthStr, 10)  : undefined,
       height:   heightStr ? parseInt(heightStr, 10) : undefined,
       fullPage: fullPageStr === 'true' || fullPageStr === '{true}',
+      crop,
+      cropPadding: cropPaddingStr ? parseInt(cropPaddingStr, 10) : undefined,
       sourceFile: filePath,
     });
   }

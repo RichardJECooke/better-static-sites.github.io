@@ -24,6 +24,10 @@ interface Props {
   height?: number;
   /** capture the full scrollable page height */
   fullPage?: boolean;
+  /** selector for the part of the page to crop to; covers every matching element (overrides fullPage) */
+  crop?: string;
+  /** pixels of space kept around the cropped area (default 16) */
+  cropPadding?: number;
   /** outputDir relative to project root; falls back to env SCREENSHOTS_DIR or 'src/assets/screenshots' */
   outputDir?: string;
 }
@@ -35,6 +39,8 @@ const {
   width,
   height,
   fullPage = false,
+  crop,
+  cropPadding,
   outputDir,
 } = Astro.props;
 
@@ -97,7 +103,7 @@ if (!fileExists && strict) {
   );
 }
 
-const specData = JSON.stringify({ url, highlights, width, height, fullPage });
+const specData = JSON.stringify({ url, highlights, width, height, fullPage, crop, cropPadding });
 
 const cssChrome = chrome.renderIn === 'css' && chrome.style !== 'none';
 let displayUrl = url;
