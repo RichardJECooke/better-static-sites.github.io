@@ -2,13 +2,13 @@
 title: Release Notes
 description: Versioned changelogs with category filtering and version dropdown navigation.
 order: 4
-version: "0.1.1"
+version: "0.2.2"
 badges: ["component"]
 ---
 
 import PkgMeta from 'src/components/PkgMeta.astro';
 
-A set of components for rendering versioned changelogs with category filtering, a sticky version selector, and helpful annotations for linked issues. Designed for docs sites with frequent releases.
+A set of components for rendering versioned changelogs with category filter chips, a sticky version selector, and deep-linkable release note items with linked issues and credits. Designed for docs sites with frequent releases.
 
 <PkgMeta pkg="astro-better-release-notes" />
 
@@ -32,68 +32,170 @@ Import the CSS in your global stylesheet:
 
 ### ReleaseNotes
 
-The outer container. Wraps all releases and provides the sticky header with
-version selector and category filter chips.
+Renders the whole changelog in one call: a sticky header with the version selector and category filter chips, then every version as an `<article>` with its heading, date, and content.
 
 ### ReleaseNotesItem
 
-One release entry. The `id` must match the version string for anchor navigation.
+One categorized release note row, used inside each version's MDX content. Renders a category badge that links to the row itself, the note, optional "since" and "resolved in" metadata, credits, and issue links.
 
 ### ReleaseNotesSelector
 
-The version dropdown and category filters. Usually used inside `ReleaseNotes`
-automatically, but can be rendered independently.
+The version jump dropdown. `ReleaseNotes` includes it automatically; use it on its own only in a custom layout.
 
 ## Usage
 
+### Content collection
+
+Each entry needs a `version` and a `date`, plus an optional release `name`:
+
+```ts
+// src/content.config.ts
+import { defineCollection, z } from 'astro:content';
+import { glob } from 'astro/loaders';
+
+const releases = defineCollection({
+  loader: glob({ pattern: '**/*.mdx', base: './src/content/releases' }),
+  schema: z.object({
+    version: z.string(),
+    date: z.coerce.date(),
+    name: z.string().optional(),
+  }),
+});
+
+export const collections = { releases };
+```
+
+Each version's MDX file uses `ReleaseNotesItem` for its notes:
+
+```mdx
+---
+version: "2.1.0"
+date: 2025-05-01
+name: "Dark Dolphin"
+---
+import { ReleaseNotesItem } from 'astro-better-release-notes';
+
+<ReleaseNotesItem category="new-feature">Added dark mode.</ReleaseNotesItem>
+<ReleaseNotesItem category="fix" issue="42" issueBaseUrl="https://github.com/org/repo/issues/">
+  Fixed a login redirect loop.
+</ReleaseNotesItem>
+```
+
+### Page
+
+Sort the entries, render each one, and pass the results to `ReleaseNotes`:
+
 ```astro
 ---
-import { ReleaseNotes, ReleaseNotesItem } from 'astro-better-release-notes';
+import { getCollection, render } from 'astro:content';
+import { ReleaseNotes } from 'astro-better-release-notes';
 
-const releases = await getCollection('releases');
+const entries = (await getCollection('releases')).sort((a, b) =>
+  b.data.version.localeCompare(a.data.version, undefined, { numeric: true })
+);
+
+const updates = await Promise.all(
+  entries.map(async (entry) => {
+    const { Content } = await render(entry);
+    return { data: entry.data, Content };
+  })
+);
 ---
-<ReleaseNotes>
-  {releases.map(release => (
-    <ReleaseNotesItem
-      id={release.data.version}
-      version={release.data.version}
-      date={release.data.date}
-      categories={release.data.categories}
-    >
-      <release.render />
-    </ReleaseNotesItem>
-  ))}
-</ReleaseNotes>
+<ReleaseNotes {updates} />
 ```
+
+## ReleaseNotes props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `updates` | `ReleaseEntry[]` | required | Rendered entries: `{ data: { version, date, name? }, Content }` |
+| `categories` | `Category[]` | `DEFAULT_CATEGORIES` | Categories shown as filter chips: `{ id, label, color }` |
+| `components` | `Record<string, any>` | `{}` | Components passed to each entry's `Content`, e.g. a custom `ReleaseNotesItem` wrapper |
+| `showSelector` | `boolean` | `true` | Set `false` to hide the version selector |
 
 ## ReleaseNotesItem props
 
 | Prop | Type | Description |
 |------|------|-------------|
-| `id` | `string` | Anchor ID (typically the version string) |
-| `version` | `string` | Version label shown in the heading |
-| `date` | `string` | Release date string |
-| `categories` | `string[]` | Category tags used by the filter chips |
+| `category` | `string` | Category id; must match a configured category. Defaults to `fix` |
+| `issue` | `string` | Issue number, linked at the end of the row |
+| `bonusIssue` | `string` | Second issue number |
+| `issueBaseUrl` | `string` | Base URL for issue links; without it, issue numbers render as plain text |
+| `thanks` | `string` | GitHub username to credit |
+| `bonusThanks` | `string` | Second GitHub username |
+| `since` | `string` | Version the change applies from, linked to that version |
+| `resolvedIn` | `string` | Version a known issue was resolved in |
+| `viaIssue` | `string` | Issue that resolved a known issue |
+| `categoryColor` | `string` | Badge color; defaults to the `--rn-color-{category}` CSS variable |
+| `categoryLabel` | `string` | Badge label; defaults to a title-cased category id |
 
 ## Category filtering
 
-The filter chips are automatically generated from all unique `categories` values
-across all `ReleaseNotesItem` entries on the page. Clicking a chip hides entries
-that do not include that category. The filter is pure CSS with no JavaScript required.
+The chips come from the `categories` prop. Checking one or more chips shows only the notes in those categories; with nothing checked, every note shows. Filtering is pure CSS, generated from your category list, so it works without JavaScript. On screens narrower than 1024px the chips sit behind a Filter button, and the button highlights while any filter is active.
 
-## Scroll behavior
+To define your own categories, pass an array whose ids match the `category` values in your MDX:
 
-The `scroll-margin-top` on each `ReleaseNotesItem` is set by the
-`--release-notes-scroll-margin` CSS custom property (default: `5rem` mobile, `12rem` desktop).
-Set this in your stylesheet to match your sticky header height.
+```js
+const categories = [
+  { id: 'new-feature', label: 'New Feature', color: '#16a34a' },
+  { id: 'fix',         label: 'Fix',         color: '#d97706' },
+  { id: 'security',    label: 'Security',    color: '#566f98' },
+];
+```
+
+## Sticky offset and scroll margins
+
+Two CSS custom properties position the sticky header and anchored content:
+
+- `--release-notes-top` is the sticky header's distance from the viewport top. Match it to your fixed nav height. Default: `3.5rem`.
+- `--release-notes-scroll-margin` is the `scroll-margin-top` on version headings and note rows, which are the anchor targets. Set it to at least the distance from the viewport top to the bottom edge of the release notes sticky header, or anchored headings land underneath it. The chip rows wrap with viewport width, so measure at each breakpoint. Default: `5rem`.
 
 ```css
-html:has(.release-container) {
-  --release-notes-scroll-margin: 5rem;
+:root {
+  --release-notes-top: 3.25rem;
+  --release-notes-scroll-margin: 7.5rem;
 }
 @media (min-width: 1024px) {
-  html:has(.release-container) {
-    --release-notes-scroll-margin: 12rem;
-  }
+  :root { --release-notes-scroll-margin: 15rem; }
 }
 ```
+
+## Theming
+
+Set these on `:root` and `.dark` to match your palette. Dark mode uses a `.dark` ancestor class.
+
+| Variable | Light default | Dark default | Used for |
+|----------|---------------|--------------|----------|
+| `--rn-bg` | `white` | `#0f172a` | Sticky header background |
+| `--rn-border` | `#d1d5db` | `#4b5563` | Selector and Filter button borders |
+| `--rn-input-bg` | `#f3f4f6` | `#1e293b` | Selector and Filter button background |
+| `--rn-text` | `#111827` | `#cbd5e1` | Selector text |
+| `--rn-text-muted` | `#374151` | `#cbd5e1` | Filter button text |
+| `--rn-focus` | `#6366f1` | `#818cf8` | Focus rings and the active-filter indicator |
+| `--rn-chip-bg` | `#f1f5f9` | `#1e293b` | Unselected chip background |
+| `--rn-chip-border` | `#cbd5e1` | `#475569` | Unselected chip border |
+| `--rn-chip-color` | `#334155` | `#cbd5e1` | Unselected chip text |
+| `--rn-color-{category}` | see `DEFAULT_CATEGORIES` | same | Category color for chips and badges |
+| `--release-notes-link-color` | `#4338ca` | -- | Issue link color |
+| `--release-notes-link-color-dark` | -- | `#818cf8` | Issue link color in dark mode |
+| `--release-notes-link-hover-color` | `#9a3412` | -- | Link and badge hover color |
+| `--release-notes-link-hover-color-dark` | -- | `#fed7aa` | Link and badge hover color in dark mode |
+
+When you map these to your own palette, keep `--rn-chip-color` and `--rn-text-muted` at a 4.5:1 contrast ratio or better against `--rn-chip-bg` and `--rn-input-bg`.
+
+## Accessibility
+
+- Each version is an `<article>` labelled by its `<h2>`, and the `<h2>` carries the anchor id (`version-2-1-0`). Fragment links, search crawlers, and TOC tools all resolve to the heading. The `#` permalink sits next to the heading, so the heading's accessible name is only the version.
+- Category filters are native checkboxes in a `<fieldset>` with a visually hidden `<legend>`. They work with Tab and Space, show a focus ring on the chip, and announce their checked state. Selected chips also show a check mark, so state doesn't rely on color.
+- Badge and selected-chip text is mixed from the category color (darker in light mode, lighter in dark mode), which keeps the default categories at 4.5:1 or better.
+- The version selector is labelled and announces each jump through a polite live region. Focus stays on the selector, because Chrome and Edge on Windows fire `change` on every arrow key press.
+- Transitions and the badge hover scale are turned off under `prefers-reduced-motion: reduce`.
+
+## Upgrading to 0.2.2
+
+Anchor URLs are unchanged, but the markup moved:
+
+- The version id moved from `<article class="version">` to its `<h2>`. Update CSS or scripts that target `article.version[id]` or `.version:target`.
+- `--release-notes-scroll-margin` now applies to the heading, which sits below the top of the article. If anchored headings land under your sticky header, increase the value.
+- The permalink is `.version-title .anchor-link`, outside the `<h2>`. Update selectors that used `.release-note .anchor-link`.
+- The filter container is a `<fieldset>` instead of a `<nav>`, and keeps its `release-notes-filters` id and `filter-controls` class.
