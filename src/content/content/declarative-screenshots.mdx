@@ -2,10 +2,10 @@
 title: Declarative Screenshots
 description: Declarative, Docker-backed screenshots for Astro docs. Define screenshots in MDX; generate PNGs on demand and commit them.
 order: 9
-version: "0.4.5"
+version: "0.4.6"
 versions:
-  astro-better-declarative-screenshots: "0.4.2"
-  astro-better-generate-screenshots: "0.4.5"
+  astro-better-declarative-screenshots: "0.4.3"
+  astro-better-generate-screenshots: "0.4.6"
 badges: ["component", "tool"]
 ---
 
@@ -54,6 +54,11 @@ In a `screenshots/` subdirectory (keeps Playwright out of your main `node_module
 mkdir screenshots && cd screenshots
 npm init -y
 npm install astro-better-generate-screenshots
+```
+
+If you set [`browserContainer`](#consistent-rendering-across-operating-systems), the browser runs in Docker and you can skip this. Otherwise, install WebKit locally:
+
+```shell-session
 npx playwright install --with-deps webkit
 ```
 
@@ -120,6 +125,9 @@ export default {
   baseUrl: 'http://localhost:4000',
   outputDir: 'public/img/screenshots',
 
+  // render in a pinned Linux container so every OS produces identical images
+  browserContainer: true,
+
   window: { width: 1200, height: 800 },
 
   chrome: {
@@ -145,6 +153,27 @@ export default {
 
 The `chrome.baseUrl` substitution makes the URL bar show `better-static-sites.github.io/docs/...`
 instead of `localhost:4000/docs/...` in the rendered screenshot.
+
+### Consistent rendering across operating systems
+
+Browsers draw text with the host OS's font engine and installed fonts, so the same page captured on macOS and on a Linux CI runner differs by a few percent of pixels. That's enough for drift checks to flag every screenshot as changed.
+
+Set `browserContainer: true` to capture in a pinned Linux container instead of a local browser:
+
+- The generator builds a small image from `mcr.microsoft.com/playwright` at the exact version of your installed `playwright` package, then caches it. It rebuilds only when that version or the bundled image files change.
+- It starts the container on a random local port, connects with Playwright's `exposeNetwork`, and removes the container when the run ends. Pages at `localhost` URLs, like your Docker services, load through the host, so no extra networking is needed.
+- The image installs Inter for system UI fonts (`-apple-system`, `system-ui`, Helvetica, Segoe UI) and DejaVu Sans Mono for Menlo and other monospace fonts, with grayscale antialiasing. The result looks close to macOS rendering.
+- macOS, Linux, Windows, arm64, and x86-64 hosts all produce the same pixels. Docker is the only requirement, and no local browser install is needed.
+
+To use your own image, pass it instead. It must be based on `mcr.microsoft.com/playwright` at the same version as your `playwright` package:
+
+```js title="screenshot.config.mjs"
+export default {
+  browserContainer: { image: 'my-org/screenshot-browser:1.63.0' },
+};
+```
+
+Turning this on changes how text renders, so regenerate and commit all screenshots once afterward to set a new baseline.
 
 ## Declaring screenshots in MDX
 
@@ -348,9 +377,7 @@ jobs:
         run: npm ci
         working-directory: ./screenshots
 
-      - name: Install Playwright webkit
-        run: npx playwright install webkit --with-deps
-        working-directory: ./screenshots
+      # no Playwright browser install step: browserContainer renders in Docker
 
       - name: Delete cached screenshots
         run: rm -f public/img/screenshots/*.png
