@@ -80,6 +80,12 @@ const ConfigSchema = z.object({
   // default color scheme
   colorScheme: z.enum(['light', 'dark']).default('light'),
 
+  // pinned linux browser container so text renders the same on every os; true = bundled image, { image } = your own
+  browserContainer: z.union([
+    z.boolean(),
+    z.object({ image: z.string().min(1).optional() }),
+  ]).default(false),
+
   // docker service configuration -- optional when the app is already running
   docker: DockerSchema.optional(),
 

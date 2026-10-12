@@ -52,6 +52,27 @@ export default {
     expect(config.docker.healthcheck.url).toBe('http://localhost:9011/api/status');
   });
 
+  it('defaults browserContainer to false', async () => {
+    writeConfig(`export default { baseUrl: 'http://localhost:9011' };`);
+    const config = await loadConfig(tmpDir);
+    expect(config.browserContainer).toBe(false);
+  });
+
+  it('accepts browserContainer: true', async () => {
+    writeConfig(`export default { baseUrl: 'http://localhost:9011', browserContainer: true };`);
+    expect((await loadConfig(tmpDir)).browserContainer).toBe(true);
+  });
+
+  it('accepts browserContainer with a custom image', async () => {
+    writeConfig(`export default { baseUrl: 'http://localhost:9011', browserContainer: { image: 'my/browser:1' } };`);
+    expect((await loadConfig(tmpDir)).browserContainer).toEqual({ image: 'my/browser:1' });
+  });
+
+  it('rejects an empty browserContainer image', async () => {
+    writeConfig(`export default { baseUrl: 'http://localhost:9011', browserContainer: { image: '' } };`);
+    await expect(loadConfig(tmpDir)).rejects.toThrow(/browserContainer/);
+  });
+
   it('applies window defaults', async () => {
     writeConfig(`export default { baseUrl: 'http://localhost:9011' };`);
     const config = await loadConfig(tmpDir);

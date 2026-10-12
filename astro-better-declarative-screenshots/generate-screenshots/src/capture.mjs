@@ -6,6 +6,13 @@ import { injectHighlights, scrollIntoView } from 'astro-better-declarative-scree
 
 const BROWSERS = { webkit, chromium, firefox };
 
+// a wsEndpoint comes from startBrowserContainer; exposeNetwork tunnels the container's localhost back to this host
+function getBrowser(browserName, wsEndpoint) {
+  return wsEndpoint
+    ? BROWSERS[browserName].connect(wsEndpoint, { exposeNetwork: '<loopback>' })
+    : BROWSERS[browserName].launch({ headless: true });
+}
+
 /**
  * @typedef {Object} CaptureOptions
  * @property {string} url - full URL including host
@@ -18,6 +25,7 @@ const BROWSERS = { webkit, chromium, firefox };
  * @property {'light'|'dark'} [colorScheme='light']
  * @property {Function} [beforeScreenshot]
  * @property {import('playwright').BrowserContext} [context] - reuse an existing context
+ * @property {string} [wsEndpoint] - connect to a running browser server instead of launching one
  */
 
 /**
@@ -38,6 +46,7 @@ export async function capturePage(opts) {
     colorScheme = 'light',
     beforeScreenshot,
     context: existingContext,
+    wsEndpoint,
   } = opts;
 
   let browser;
@@ -46,7 +55,7 @@ export async function capturePage(opts) {
 
   try {
     if (!context) {
-      browser = await BROWSERS[browserName].launch({ headless: true });
+      browser = await getBrowser(browserName, wsEndpoint);
       context = await browser.newContext({
         viewport: { width, height },
         colorScheme,
@@ -99,10 +108,11 @@ export async function capturePage(opts) {
  * @param {number} [opts.width=1280]
  * @param {number} [opts.height=800]
  * @param {'light'|'dark'} [opts.colorScheme='light']
+ * @param {string} [opts.wsEndpoint] - connect to a running browser server instead of launching one
  * @returns {Promise<{browser: import('playwright').Browser, context: import('playwright').BrowserContext}>}
  */
-export async function createBrowserContext({ browser: browserName = 'webkit', width = 1280, height = 800, colorScheme = 'light' } = {}) {
-  const browser = await BROWSERS[browserName].launch({ headless: true });
+export async function createBrowserContext({ browser: browserName = 'webkit', width = 1280, height = 800, colorScheme = 'light', wsEndpoint } = {}) {
+  const browser = await getBrowser(browserName, wsEndpoint);
   const context = await browser.newContext({
     viewport: { width, height },
     colorScheme,

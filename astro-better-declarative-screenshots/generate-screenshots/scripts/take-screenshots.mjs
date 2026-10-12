@@ -9,6 +9,7 @@ import { loadConfig } from 'astro-better-declarative-screenshots';
 import { discoverScreenshots } from '../src/discover.mjs';
 import { startDocker, stopDocker } from '../src/docker.mjs';
 import { capturePage, createBrowserContext } from '../src/capture.mjs';
+import { startBrowserContainer } from '../src/browser-container.mjs';
 import { applyChrome } from '../src/chrome.mjs';
 import { generatePlaceholder } from '../src/placeholder.mjs';
 
@@ -50,11 +51,20 @@ async function main() {
 
   // create one browser context shared across beforeAll and all captures so
   // session cookies from login are preserved throughout
+  // a pinned browser container makes text render the same on every host os
+  const container = config.browserContainer
+    ? await startBrowserContainer(config.browserContainer).catch(e => {
+        console.error('[screenshots] browser container failed:', e.message);
+        process.exit(1);
+      })
+    : null;
+
   const { browser, context } = await createBrowserContext({
     browser: config.browser,
     width: config.window.width,
     height: config.window.height,
     colorScheme: config.colorScheme,
+    wsEndpoint: container?.wsEndpoint,
   });
 
   if (config.beforeAll) {
@@ -120,6 +130,7 @@ async function main() {
   }
 
   await browser.close();
+  container?.stop();
 
   if (config.docker) {
     stopDocker(config.docker, projectRoot);
