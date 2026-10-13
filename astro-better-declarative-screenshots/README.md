@@ -183,7 +183,7 @@ Nested inside `<Screenshot>`. Injects a visual overlay onto the captured page be
 | `label` | `string` | `''` | Short text badge drawn above the highlighted element |
 | `borderWidth` | `number` | `3` | Border thickness in pixels |
 
-Elements with zero dimensions (hidden inputs, `display: none` elements) are skipped automatically.
+Elements with zero dimensions (hidden inputs, `display: none` elements) are skipped automatically. If a selector matches nothing on the page, the screenshot fails instead of being saved without the highlight.
 
 ## CLI reference
 
