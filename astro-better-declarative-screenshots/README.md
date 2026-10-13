@@ -112,6 +112,16 @@ Capture the full scrollable height of a page:
 <Screenshot url="/admin/user/add" alt="The add user form." fullPage={true} />
 ```
 
+Crop the image to part of the page instead of the whole window:
+
+```mdx
+<Screenshot url="/admin/tenant/add" alt="The tenant name field." crop="main header:has(h1), fieldset:has(#tenant_name)">
+  <Highlight selector="#tenant_name" />
+</Screenshot>
+```
+
+The crop covers every element the selector matches, so a selector list like the one above keeps the page title and its buttons in view along with the field. It also grows to include any highlight borders, arrows, and labels. If the selector matches nothing, the screenshot fails rather than falling back to the full window. Give each cropped screenshot an `id` when you crop more than one part of the same page.
+
 Call out a specific element with a `<Highlight>` nested inside:
 
 ```mdx
@@ -162,6 +172,8 @@ Commit the generated PNG files alongside your source. The `<Screenshot>` compone
 | `width` | `number` | `window.width` from config | Viewport width for this screenshot |
 | `height` | `number` | `window.height` from config | Viewport height for this screenshot |
 | `fullPage` | `boolean` | `false` | Capture the full scrollable page height |
+| `crop` | `string` | — | CSS selector for the part of the page to crop the image to; covers every matching element and overrides `fullPage` |
+| `cropPadding` | `number` | `16` | Pixels of space kept around the cropped area |
 
 Filenames are derived from the URL path and highlight selectors:
 

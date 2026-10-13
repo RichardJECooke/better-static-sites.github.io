@@ -96,6 +96,8 @@ async function main() {
         width: spec.width ?? config.window.width,
         height: spec.height ?? config.window.height,
         fullPage: spec.fullPage,
+        crop: spec.crop,
+        cropPadding: spec.cropPadding,
         browser: config.browser,
         colorScheme: config.colorScheme,
         beforeScreenshot: config.beforeScreenshot,
