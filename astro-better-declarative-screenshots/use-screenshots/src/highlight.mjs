@@ -13,6 +13,7 @@
 /**
  * Inject highlight overlays into the page.
  * Returns a cleanup function that removes injected elements.
+ * Throws if a highlight selector matches nothing on the page.
  *
  * @param {import('playwright').Page} page
  * @param {HighlightSpec[]} highlights
@@ -21,13 +22,14 @@
 export async function injectHighlights(page, highlights) {
   if (!highlights.length) return async () => {};
 
-  const ids = await page.evaluate((specs) => {
+  const { injectedIds: ids, missing } = await page.evaluate((specs) => {
     const injectedIds = [];
+    const missing = [];
 
     for (const spec of specs) {
       const target = document.querySelector(spec.selector);
       if (!target) {
-        console.warn(`[screenshot] selector not found: ${spec.selector}`);
+        missing.push(spec.selector);
         continue;
       }
 
@@ -114,10 +116,10 @@ export async function injectHighlights(page, highlights) {
       }
     }
 
-    return injectedIds;
+    return { injectedIds, missing };
   }, highlights);
 
-  return async () => {
+  const cleanup = async () => {
     await page.evaluate((injectedIds) => {
       for (const id of injectedIds) {
         const el = document.getElementById(id);
@@ -125,6 +127,13 @@ export async function injectHighlights(page, highlights) {
       }
     }, ids);
   };
+
+  if (missing.length) {
+    await cleanup();
+    throw new Error(`highlight selector not found: ${missing.join(', ')}`);
+  }
+
+  return cleanup;
 }
 
 /**

@@ -39,9 +39,10 @@ export async function discoverScreenshots(projectRoot, patterns) {
   const defaultPatterns = ['src/**/*.mdx', 'src/**/*.md', 'src/**/*.astro'];
   const globs = (patterns ?? defaultPatterns).map(p => path.join(projectRoot, p));
 
+  // fixed order, so state left by setup hooks is the same every run
   const files = (
     await Promise.all(globs.map(pattern => glob(pattern, { absolute: true })))
-  ).flat();
+  ).flat().sort();
 
   const used = new Set();
   const specs = [];

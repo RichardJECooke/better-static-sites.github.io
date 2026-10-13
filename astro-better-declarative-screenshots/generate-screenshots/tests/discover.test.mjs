@@ -60,6 +60,14 @@ import Screenshot from 'astro-better-declarative-screenshots/Screenshot.astro';
     expect(specs[1].url).toBe('/admin/user');
   });
 
+  it('returns screenshots in file path order', async () => {
+    write('src/content/docs/zebra.mdx', '<Screenshot url="/z" />');
+    write('src/content/docs/apple.mdx', '<Screenshot url="/a" />');
+    write('src/content/docs/mango/index.mdx', '<Screenshot url="/m" />');
+    const specs = await discoverScreenshots(tmpDir);
+    expect(specs.map(s => s.url)).toEqual(['/a', '/m', '/z']);
+  });
+
   it('respects an explicit id prop', async () => {
     write('src/content/docs/page.mdx', `
 <Screenshot url="/admin/group" id="my-custom-name" />
