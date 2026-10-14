@@ -31,6 +31,7 @@ const CHECK = process.argv.includes('--check');
 
 // Explicit allowlists, so a new test file or lockfile never lands in a tarball.
 // npm always adds package.json, README and LICENSE on top of these.
+// Keys are npm package names (astro-better-*), not folder names.
 const FILES = {
   'astro-better-admonitions': ['*.js', '*.astro', '*.css'],
   'astro-better-cards': ['*.astro'],

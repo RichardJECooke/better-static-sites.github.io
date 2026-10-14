@@ -1,0 +1,39 @@
+{
+  "name": "astro-better-tables",
+  "version": "0.1.2",
+  "description": "RST-style list-table and grid-table components for Astro",
+  "keywords": [
+    "astro",
+    "astro-component",
+    "table",
+    "list-table",
+    "grid-table"
+  ],
+  "license": "MIT",
+  "author": "Nathan Contino <ncontino@lambdalatitudinarians.org>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/better-static-sites/better-static-sites.github.io.git",
+    "directory": "lib/tables"
+  },
+  "homepage": "https://better-static-sites.github.io",
+  "bugs": {
+    "url": "https://github.com/better-static-sites/better-static-sites.github.io/issues"
+  },
+  "type": "module",
+  "exports": {
+    "./Table.astro": "./Table.astro",
+    "./TableGrid.astro": "./TableGrid.astro",
+    "./Row.astro": "./Row.astro",
+    "./Cell.astro": "./Cell.astro"
+  },
+  "files": [
+    "Table.astro",
+    "TableGrid.astro",
+    "Row.astro",
+    "Cell.astro"
+  ],
+  "peerDependencies": {
+    "astro": ">=4.0.0"
+  }
+}

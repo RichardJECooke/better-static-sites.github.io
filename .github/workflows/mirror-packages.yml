@@ -1,10 +1,10 @@
-# Mirrors each changed astro-better-* directory to its standalone repo, on merge
-# to main. Targets come from each directory's repositoryUrl.txt.
+# Mirrors each changed lib/ directory to its standalone repo, on merge to main.
+# Targets come from each directory's repositoryUrl.txt.
 #
 # All logic lives in scripts/mirror-packages.mjs so it can be run locally:
 #
 #   node scripts/mirror-packages.mjs --dry-run --all
-#   MIRROR_REPO_TOKEN=... node scripts/mirror-packages.mjs --only astro-better-refs
+#   MIRROR_REPO_TOKEN=... node scripts/mirror-packages.mjs --only refs
 #   MIRROR_REPO_TOKEN=... node scripts/mirror-packages.mjs --all
 #
 # Secret required: MIRROR_REPO_TOKEN (contents:write on the target repos).
@@ -16,7 +16,7 @@ on:
     branches:
       - main
     paths:
-      - 'astro-better-*/**'
+      - 'lib/**'
   workflow_dispatch:
 
 permissions:

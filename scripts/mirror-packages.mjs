@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * Mirrors each top-level astro-better-* directory into its own GitHub repo, so
- * every library stays individually cloneable even though it now lives here.
+ * Mirrors each directory inside `lib/` into its own GitHub repo, so every
+ * library stays individually cloneable even though it now lives here.
  *
  * Each directory names its target in `repositoryUrl.txt`, in the same partial
- * form the astro-better-code-snippet-extractor export template uses:
+ * form the code-snippet-extractor export template uses:
  *
  *   github.com/nathan-contino/astro-refs.git
  *
@@ -17,7 +17,7 @@
  *   scripts/mirror-packages.mjs --dry-run                 # what would change
  *   scripts/mirror-packages.mjs --base HEAD~1             # folders changed since
  *   scripts/mirror-packages.mjs --all                     # every folder
- *   scripts/mirror-packages.mjs --only astro-better-refs  # just these
+ *   scripts/mirror-packages.mjs --only refs               # just these
  *
  * Auth:
  *   MIRROR_REPO_TOKEN   GitHub token with contents:write on the target repos.
@@ -44,7 +44,7 @@ const only = argv.reduce((acc, arg, i) => (arg === '--only' ? [...acc, argv[i + 
 if (argv.includes('--help') || argv.includes('-h')) {
   console.log(`Usage: scripts/mirror-packages.mjs [--dry-run] [--all | --base <ref> | --only <folder>...]
 
-Mirrors each astro-better-* directory to the repo named in its repositoryUrl.txt.
+Mirrors each lib/ directory to the repo named in its repositoryUrl.txt.
 Set MIRROR_REPO_TOKEN unless running --dry-run.`);
   process.exit(0);
 }
@@ -52,14 +52,14 @@ Set MIRROR_REPO_TOKEN unless running --dry-run.`);
 const git = (args, opts = {}) =>
   execFileSync('git', args, { encoding: 'utf-8', ...opts });
 
-/** Folders touched since `ref`, so a merge only pushes what it changed. */
+/** Folders inside `lib/` touched since `ref`, so a merge only pushes what it changed. */
 function changedFolders(ref) {
   const changed = git(['-C', REPO_ROOT, 'diff', '--name-only', `${ref}..HEAD`])
     .split('\n').filter(Boolean);
   const folders = new Set();
   for (const file of changed) {
-    const top = file.split('/')[0];
-    if (top.startsWith('astro-better-')) folders.add(top);
+    const parts = file.split('/');
+    if (parts[0] === 'lib' && parts[1]) folders.add(parts[1]);
   }
   return [...folders].sort();
 }
@@ -84,13 +84,13 @@ if (only.length) {
 }
 
 if (!folders.length) {
-  console.log('No astro-better-* folders changed, nothing to mirror.');
+  console.log('No lib/ folders changed, nothing to mirror.');
   process.exit(0);
 }
 
 const TOKEN = process.env.MIRROR_REPO_TOKEN;
 const needsToken = folders.some(f => {
-  const file = join(REPO_ROOT, f, 'repositoryUrl.txt');
+  const file = join(REPO_ROOT, 'lib', f, 'repositoryUrl.txt');
   return existsSync(file) && !readFileSync(file, 'utf-8').includes('://');
 });
 if (!TOKEN && !DRY_RUN && needsToken) {
@@ -108,7 +108,7 @@ const skipped = [];
 const failed = [];
 
 for (const folder of folders) {
-  const urlFile = join(REPO_ROOT, folder, 'repositoryUrl.txt');
+  const urlFile = join(REPO_ROOT, 'lib', folder, 'repositoryUrl.txt');
   if (!existsSync(urlFile)) {
     console.log(`  ${folder}: no repositoryUrl.txt, skipping`);
     skipped.push(folder);
@@ -140,7 +140,7 @@ for (const folder of folders) {
     git(['-C', clone, 'clean', '-fdxq']);
     // repositoryUrl.txt is monorepo plumbing and means nothing in the target,
     // so it stays behind, as it does in the extractor's reference script.
-    cpSync(join(REPO_ROOT, folder), clone, {
+    cpSync(join(REPO_ROOT, 'lib', folder), clone, {
       recursive: true,
       filter: src => {
         const parts = src.split('/');

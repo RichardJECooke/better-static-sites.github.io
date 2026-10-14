@@ -14,7 +14,7 @@ on:
     branches:
       - main
     paths:
-      - 'astro-better-*/**'
+      - 'lib/**'
   workflow_dispatch:
 
 permissions:

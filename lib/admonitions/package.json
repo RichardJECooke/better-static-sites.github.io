@@ -1,0 +1,36 @@
+{
+  "name": "astro-better-admonitions",
+  "version": "0.2.1",
+  "description": "Extensible admonition (callout) and inline badge components for Astro",
+  "keywords": [
+    "astro",
+    "admonition",
+    "callout",
+    "aside",
+    "badge",
+    "note",
+    "tip",
+    "warning"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/better-static-sites/better-static-sites.github.io.git",
+    "directory": "lib/admonitions"
+  },
+  "homepage": "https://better-static-sites.github.io",
+  "bugs": {
+    "url": "https://github.com/better-static-sites/better-static-sites.github.io/issues"
+  },
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./style.css": "./style.css",
+    "./Admonition.astro": "./Admonition.astro"
+  },
+  "files": [
+    "*.js",
+    "*.astro",
+    "*.css"
+  ]
+}

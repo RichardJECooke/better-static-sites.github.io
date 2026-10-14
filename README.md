@@ -6,11 +6,14 @@ Does this suite contain the best tools around? I can't answer that question. But
 
 ## This repo
 
-This repo holds both the `astro-better-*` packages and the documentation site for them. Each
-package lives in its own top-level directory, and the docs site at the root is built with
-Astro using the packages it documents.
+This repo holds both the `astro-better-*` packages and the documentation site for them.
+All library packages live under `lib/`, each in its own subdirectory named after the
+corresponding docs page (e.g. `lib/mermaid/`, `lib/refs/`). The docs site at the root
+is built with Astro using the packages it documents.
 
-Most top-level directories are one package, but some hold more than one, when a basic package is paired with an advanced package.
+Most `lib/` subdirectories contain one package, but some hold more than one — when a
+basic package is paired with an advanced one (e.g. `lib/code-blocks/` contains both
+`astro-better-code-blocks` and `astro-better-code-snippet-extractor`).
 
 ## Local development
 
@@ -27,7 +30,7 @@ npm run dev
 ```
 
 To work against your local changes to a package instead of the published version, point the
-dependency at the directory (`"astro-better-refs": "file:./astro-better-refs"`) or use
+dependency at the directory (`"astro-better-refs": "file:./lib/refs"`) or use
 `npm link`. But don't commit the local reference!
 
 ## Build
